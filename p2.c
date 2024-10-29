@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     MEMALLOC m;
     pid_t pid;
     int counter, control,i,tam;
-    char *args[20], wd[512];
+    char *args[20];
     char *input = malloc(sizeof(char) * 30);
     void *mem;
     ABIERTOLISTA abiertos;
@@ -68,8 +68,7 @@ int main(int argc, char** argv) {
                 printf("%d\n", pid);
             } else if (strcmp(args[0], "cd") == 0) { // Directorios
                 if (args[1] == NULL) {
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
                 } else { // Si recibimos argumentos, cambiar al directorio si existe
                     if (chdir(args[1]) == -1) {
                         printf("Error al encontrar el directorio %s\n", args[1]);
@@ -115,21 +114,18 @@ int main(int argc, char** argv) {
                     makefile(args);
                 }
                 else{
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
                 }
             } else if (strcmp(args[0], "makedir") == 0) {
                 if (counter == 0) {
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
                 } else {
                     mkdir(args[1], 0777);
                     opendir(args[1]);
                 }
             } else if (strcmp(args[0], "listdir") == 0) {
                 if (counter == 1) {
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
                 } else {
                     if (counter == 3) {
                         if (strcmp(args[1], "-hid") == 0) {
@@ -150,8 +146,7 @@ int main(int argc, char** argv) {
             }}else if(strcmp(args[0],"reclist")==0){
                 //Es igual que listdir, primero (-acc,-link,-long,-hid) luego directorio
                 if (counter == 1) {
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
                 } else {
                     if (counter == 3) {
                         if (strcmp(args[1], "-hid") == 0) {
@@ -173,8 +168,7 @@ int main(int argc, char** argv) {
             }
             else if (strcmp(args[0],"revlist")==0){
                 if (counter == 1) {
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
                 } else {
                     if (counter == 3) {
                         if (strcmp(args[1], "-hid") == 0) {
@@ -201,8 +195,7 @@ int main(int argc, char** argv) {
                         i++;
                     }
                 } else {
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
                 }
             } else if (strcmp(args[0], "delrec") == 0){
                 if (counter > 1){
@@ -212,13 +205,11 @@ int main(int argc, char** argv) {
                         i++;
                     }
                     } else {
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
             }}
             else if(strcmp(args[0],"allocate")==0){
                 if (counter == 1) {
-                    getcwd(wd, sizeof(wd));
-                    printf("%s\n", wd);
+                    cwd();
                 } else {
                     if (counter == 3) {//Puede que en -mmap, etc no sean solo 3 argumentos.
                         if(strcmp(args[1],"-malloc")==0){
@@ -243,17 +234,19 @@ int main(int argc, char** argv) {
                             do_AllocateCreateshared(args,shared);
                         }
                     else{
-                        getcwd(wd, sizeof(wd));
-                        printf("%s\n", wd);
+                        cwd();
                     }
                 }
             }
             else if(strcmp(args[0],"memfill")==0){
-                printf("Llenar memoria\n");
+                if(counter > 2){
+                    LlenarMemoria((void*)args[2],atoi(args[3]),(unsigned char)args[4]);
+                }else{
+                    cwd();
+                }
             }
             else if (strcmp(args[0], "cwd") == 0) {
-                getcwd(wd, sizeof(wd));
-                printf("%s\n", wd);
+                cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell
                 printf("Saliendo del shell...\n");
                 free(input); // Al salir liberamos memoria

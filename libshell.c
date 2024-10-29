@@ -940,3 +940,9 @@ void repeat_cmd(char* input, HIST historial,ABIERTOLISTA abiertos){
             perror("Error al escanear la línea.\n");
         }
 }
+
+void cwd(){
+    char wd[512];
+    getcwd(wd, sizeof(wd));
+    printf("%s\n", wd);
+}
