@@ -248,6 +248,9 @@ int main(int argc, char** argv) {
                     }
                 }
             }
+            else if(strcmp(args[0],"memfill")==0){
+                printf("Llenar memoria\n");
+            }
             else if (strcmp(args[0], "cwd") == 0) {
                 getcwd(wd, sizeof(wd));
                 printf("%s\n", wd);
