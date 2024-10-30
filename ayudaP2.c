@@ -109,6 +109,7 @@ void do_AllocateCreateshared (char *tr[], MEM *shared){
    if ((p=ObtenerMemoriaShmget(cl,tam))!=NULL){
 		m.pointer = p;
       m.size = tam;
+      m.tipo = SHARED;
       insertamem(shared,primeromem(shared),m);
       printf ("Asignados %lu bytes en %p\n",(unsigned long) tam, p);
    }
@@ -224,18 +225,18 @@ void Cmd_ReadFile (char *ar[])
    void *p;
    size_t cont=-1;  /*si no pasamos tamano se lee entero */
    ssize_t n;
-   if (ar[0]==NULL || ar[1]==NULL){
+   if (ar[1]==NULL || ar[2]==NULL){
 	printf ("faltan parametros\n");
 	return;
    }
-   p=cadtop(ar[1]);  /*convertimos de cadena a puntero*/
+   p=cadtop(ar[2]);  /*convertimos de cadena a puntero*/
    if (ar[2]!=NULL)
 	cont=(size_t) atoll(ar[2]);
 
-   if ((n=LeerFichero(ar[0],p,cont))==-1)
+   if ((n=LeerFichero(ar[1],p,cont))==-1)
 	perror ("Imposible leer fichero");
    else
-	printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[0],p);
+	printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[1],p);
 }
 
 

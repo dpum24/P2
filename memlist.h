@@ -1,6 +1,13 @@
+typedef enum {
+    MALLOC,
+    SHARED,
+    MAPPED
+} AllocationType;
+
 typedef struct MEMALLOC{
     void *pointer;
     size_t size;
+    AllocationType tipo;
 }MEMALLOC;
 
 

@@ -220,6 +220,7 @@ int main(int argc, char** argv) {
                             if (mem != NULL){
                             m.pointer = mem;
                             m.size = tam;
+                            m.tipo = MALLOC;
                             insertamem(&memorial,dndmem,m);
                             dndmem = siguiente(memorial,dndmem);
                             printf("Memoria malloc asignada en: %p (%d bytes)\n", mem, tam);
@@ -250,6 +251,16 @@ int main(int argc, char** argv) {
             else if (strcmp(args[0],"recurse")==0){
                 Recursiva(atoi(args[1]));
             }
+            else if(strcmp(args[0],"readfile")==0){
+                Cmd_ReadFile(args);
+            }
+            else if(strcmp(args[0],"read")==0){
+                if(LeerFichero(args[1],(void*)args[2],atoi(args[3]))==-1){
+                    perror("Error al leer el archivo");
+                }else{
+                    //printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[1],p);
+                }
+            }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell
@@ -269,8 +280,8 @@ int main(int argc, char** argv) {
             historics(args, historial, &c); // Guardamos en el historial los comandos introducidos
             insertahist(&historial, dndhist, c);
             dndhist = siguientehist(historial, dndhist);
-        } else {
+        }else {
             perror("Error al escanear la línea.\n");
         }
-    }
-}
+}}
+
