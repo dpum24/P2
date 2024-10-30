@@ -28,4 +28,5 @@ void longlistdirrec(char* path);
 void revlist(char* path, int mode);
 void longrevlist(char* path);
 void delrec(char* path);
+void cwd();
 #endif
