@@ -1,5 +1,5 @@
 //Diego Emilio Pumarol Guerrero, login: diego.pumarol@udc.es
-//Rubén Sayáns Fortes, ruben.sayans@udc.es
+//Rubén Sayáns Fortes, login: ruben.sayans@udc.es
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -36,13 +36,11 @@ int main(int argc, char** argv) {
     void *mem;
     ABIERTOLISTA abiertos;
     HIST historial;
-    MEM memorial, mmap, shared;
+    MEM memorial;
     
     crea(&abiertos);
     creahist(&historial);
     creamem(&memorial);
-    creamem(&mmap);
-    creamem(&shared);
     file_start(&abiertos);
     TNODOHIST dndhist = primerohist(historial);
     TNODOLISTA dndfile = fin(abiertos);
@@ -232,9 +230,9 @@ int main(int argc, char** argv) {
                         }else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
                             do_AllocateMmap(args);
                         }else if(strcmp(args[1],"-shared")==0){
-                            do_AllocateShared (args,shared);
+                            do_AllocateShared (args,memorial);
                         }else if(strcmp(args[1],"-createshared")==0){
-                            do_AllocateCreateshared(args,shared);
+                            do_AllocateCreateshared(args,memorial);
                         }
                     else{
                         cwd();
@@ -268,11 +266,8 @@ int main(int argc, char** argv) {
                 free(input); // Al salir liberamos memoria
                 destruye(&abiertos);
                 destruyehist(&historial);
-                LiberarMemoriaLista(&shared),
                 LiberarMemoriaLista(&memorial);
                 destruyemem(&memorial);
-                destruyemem(&mmap);
-                destruyemem(&shared);
                 break;
             } else {
                 printf("Comando no reconocido: %s\n", args[0]);
