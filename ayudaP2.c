@@ -163,12 +163,12 @@ void do_AllocateMmap(char *arg[])
             //ImprimirListaMmap(&L); 
             return;
             }
-     if ((perm=arg[2])!=NULL && strlen(perm)<4) {
+     if ((perm=arg[3])!=NULL && strlen(perm)<4) {
             if (strchr(perm,'r')!=NULL) protection|=PROT_READ;
             if (strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
             if (strchr(perm,'x')!=NULL) protection|=PROT_EXEC;
      }
-     if ((p=MapearFichero(arg[1],protection))==NULL)
+     if ((p=MapearFichero(arg[2],protection))==NULL)
              perror ("Imposible mapear fichero");
      else
              printf ("fichero %s mapeado en %p\n", arg[1], p);

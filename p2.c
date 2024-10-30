@@ -1,3 +1,5 @@
+//Diego Emilio Pumarol Guerrero, login: diego.pumarol@udc.es
+//Rubén Sayáns Fortes, ruben.sayans@udc.es
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -240,10 +242,13 @@ int main(int argc, char** argv) {
             }
             else if(strcmp(args[0],"memfill")==0){
                 if(counter > 2){
-                    LlenarMemoria((void*)args[2],atoi(args[3]),(unsigned char)args[4]);
+                    LlenarMemoria((void*)args[2],atoi(args[3]),args[4][0]);
                 }else{
                     cwd();
                 }
+            }
+            else if (strcmp(args[0],"recurse")==0){
+                Recursiva(atoi(args[1]));
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
