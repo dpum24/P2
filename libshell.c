@@ -1,3 +1,5 @@
+//Diego Emilio Pumarol Guerrero, login: diego.pumarol@udc.es
+//Rubén Sayáns Fortes, login: ruben.sayans@udc.es
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

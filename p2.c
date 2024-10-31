@@ -17,7 +17,6 @@
 #include "ayudaP2.h"
 #include "libshell.h"
 
-//Falla reclist y revlist en que no lista archivos directorio actual
 //falta listfile
 //-hid en todos
 
@@ -221,10 +220,9 @@ int main(int argc, char** argv) {
                     cwd();
             }}
             else if(strcmp(args[0],"allocate")==0){
-                if (counter == 1) {
+                if (counter < 1) {
                     cwd();
                 } else {
-                    if (counter == 3) {//Puede que en -mmap, etc no sean solo 3 argumentos.
                         if(strcmp(args[1],"-malloc")==0){
                             tam = atoi(args[2]);
                             mem = malloc(tam);
@@ -240,7 +238,7 @@ int main(int argc, char** argv) {
                             printf("Error al asignar memoria\n");
                         }
                     }
-                        }else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
+                        else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
                             do_AllocateMmap(args);
                         }else if(strcmp(args[1],"-shared")==0){
                             do_AllocateShared (args,memorial);
@@ -251,12 +249,41 @@ int main(int argc, char** argv) {
                         cwd();
                     }
                 }
+            }else if (strcmp(args[0],"deallocate")==0){
+                if(counter>2){
+                    if(strcmp(args[1],"-malloc")==0){
+                            //free(pointerlista)
+                        }
+                            else{
+                            printf("Error al asignar memoria\n");
+                        }
+                    }
+                        else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
+                            printf("Mmap dealloc\n");
+                        }else if(strcmp(args[1],"-shared")==0){
+                            printf("Shared Dealloc\n");
+                        }else if(strcmp(args[1],"-delkey")==0){
+                            printf("Delkey\n");
+                        }
+                    else{
+                        if(counter == 2){
+                            void *del = cadtop(args[1]);
+                            free(del);
+                            suprimemem(&memorial,primeromem(memorial));//Habria que encontrar donde esta
+                            printf("Liberado %p",del);
+                        }
+                }
             }
             else if(strcmp(args[0],"memfill")==0){
                 if(counter > 2){
                     LlenarMemoria((void*)args[2],atoi(args[3]),args[4][0]);
                 }else{
                     cwd();
+                }
+            }
+            else if (strcmp(args[0],"memory")==0){
+                if(counter > 1){
+                    
                 }
             }
             else if (strcmp(args[0],"recurse")==0){
@@ -272,7 +299,6 @@ int main(int argc, char** argv) {
                     //printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[1],p);
                 }
             }
-
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell
@@ -292,5 +318,5 @@ int main(int argc, char** argv) {
         }else {
             perror("Error al escanear la línea.\n");
         }
-}}
-
+}
+}
