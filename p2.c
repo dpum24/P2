@@ -18,9 +18,7 @@
 #include "libshell.h"
 
 //Falla reclist y revlist en que no lista archivos directorio actual
-//Falla erase, no borra directorio
 //falta listfile
-//Alguno sin argumento no pone directorio actual
 //-hid en todos
 
 //valgrind --leak-check=yes ./p1
@@ -32,7 +30,7 @@ int main(int argc, char** argv) {
     pid_t pid;
     int counter, control,i,tam;
     char *args[20];
-    char *input = malloc(sizeof(char) * 30);
+    char *input = malloc(sizeof(char) * 50);
     void *mem;
     ABIERTOLISTA abiertos;
     HIST historial;
@@ -48,7 +46,7 @@ int main(int argc, char** argv) {
     
     while (1) {
         printf("->");
-        fgets(input, 30, stdin);
+        fgets(input, 50, stdin);
         counter = TrocearCadena(input, args); // Trocea "input" en el array de strings "args", numero de args es "counter"
         
         if (counter != 0) {
@@ -191,10 +189,25 @@ int main(int argc, char** argv) {
                 if (counter > 1) {
                     i = 1;
                     while (args[i] != NULL) {
-                        remove(args[i]);
-                        i++;
+                        struct stat info;
+
+                if (stat(args[i], &info) == 0) {
+                    if (S_ISDIR(info.st_mode)) {
+                    // Si es un directorio, llamamos a la función recursiva
+                    if (rmdir(args[i]) < 0) {
+                        perror("No se pudo borrar el directorio");
                     }
+                    }else {
+                        // Si es un archivo, lo borramos
+                     if (remove(args[i]) < 0) {
+                        perror("Error al ejecutar erase");
+                }}
                 } else {
+                    perror("Error al ejecutar erase");
+                }
+                    i++;
+                }
+                }else {
                     cwd();
                 }
             } else if (strcmp(args[0], "delrec") == 0){
@@ -259,6 +272,7 @@ int main(int argc, char** argv) {
                     //printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[1],p);
                 }
             }
+
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell

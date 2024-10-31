@@ -371,57 +371,86 @@ void makefile(char *args[]) {
 }
 
 void listdirrec(char *path, int mode) {
+    DIR *dir;
     struct dirent *ent;
     struct stat strat;
     struct tm *tm_info;
-    DIR *dir;
-    char ruta_completa[1024], buffer[75];
+    char ruta_completa[1024], buffer[75], enlace_destino[1024];
+
+    // Abrir el directorio actual
     dir = opendir(path);
     if (dir == NULL) {
         perror("No se pudo abrir el directorio");
         return;
     }
+
+    // Imprimir encabezado para el directorio actual
     printf("************%s\n", path);
+
+    // Primer recorrido: listar archivos y directorios en el directorio actual
+    while ((ent = readdir(dir)) != NULL) {
+        // Saltar "." y ".."
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+            continue;
+        }
+
+        // Construir la ruta completa del archivo o directorio
+        snprintf(ruta_completa, sizeof(ruta_completa), "%s/%s", path, ent->d_name);
+
+        // Obtener la información del archivo o directorio
+        if (stat(ruta_completa, &strat) == -1) {
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        // Modo normal: listar tamaño y nombre
+        if (mode == 0) {
+            printf("%7ld  %s\n", (long)strat.st_size, ent->d_name);
+        } 
+        // Modo -link: mostrar enlaces simbólicos y sus destinos
+        else if (mode == 1) {
+            if (S_ISLNK(strat.st_mode)) {
+                ssize_t len = readlink(ruta_completa, enlace_destino, sizeof(enlace_destino) - 1);
+                if (len == -1) {
+                    perror("Error al leer el enlace simbólico");
+                } else {
+                    enlace_destino[len] = '\0';
+                    printf("Enlace simbólico %s ----> %s\n", ent->d_name, enlace_destino);
+                }
+            } else {
+                printf("%7ld  %s\n", (long)strat.st_size, ent->d_name);
+            }
+        } 
+        // Modo -acc: mostrar fecha y hora del último acceso
+        else if (mode == 2) {
+            tm_info = localtime(&strat.st_atime);
+            strftime(buffer, sizeof(buffer), "%d/%m/%Y %H:%M:%S", tm_info);
+            printf("%7ld  %s\tÚltimo acceso: %s\n", (long)strat.st_size, ent->d_name, buffer);
+        }
+    }
+
+    // Volver al inicio del directorio para recorrer subdirectorios
+    rewinddir(dir);
+
+    // Segundo recorrido: entrar en subdirectorios recursivamente
     while ((ent = readdir(dir)) != NULL) {
         if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
             continue;
         }
+
         snprintf(ruta_completa, sizeof(ruta_completa), "%s/%s", path, ent->d_name);
         if (stat(ruta_completa, &strat) == -1) {
             perror("Error al obtener información del archivo");
             continue;
         }
-        
-        // Si es un directorio, hacer llamada recursiva
+
+        // Si es un subdirectorio, aplicar la llamada recursiva
         if (S_ISDIR(strat.st_mode)) {
-            listdirrec(ruta_completa,mode);
-        } else {
-            if(mode==0){//Listdir normal
-            printf("%lu\t%s\n", strat.st_size, ent->d_name);
-            }
-            if(mode==1){//Para -link, hace normal pero si hay link simbolico demuestra a lo que apunta
-                if (S_ISLNK(strat.st_mode)) {
-                    ssize_t len = readlink(ruta_completa, path, sizeof(path) - 1);
-                        if (len == -1) {
-                            perror("Error al leer el enlace simbolico");
-                        }else {
-                            path[len] = '\0';
-                            printf("El enlace simbolico %s ----> %s\n", ent->d_name, path);
-                        }
-                }else{
-                    printf("%lu\t%s\n", strat.st_size, ent->d_name);
-                }
-            }if(mode == 2){//Para -acc, tiempos de acceso
-            tm_info = localtime(&strat.st_atime);
-            strftime(buffer, sizeof(buffer), "%d/%m/%Y %H:%M:%S", tm_info);
-            printf("%s\tÚltimo acceso: %s\n", ent->d_name, buffer);
-            }if (mode == 3) {  // Para -hid, lista archivos ocultos
-            if (ent->d_name[0] == '.') {
-                printf("%lu\t%s\n", strat.st_size, ent->d_name);
-            }
-        }
+            listdirrec(ruta_completa, mode);
         }
     }
+
+    // Cerrar el directorio
     closedir(dir);
 }
 char LetraTF (mode_t m) {
@@ -760,6 +789,10 @@ void phistorics(HIST history, char *args, ABIERTOLISTA abiertos){
     }
 }
 void repeat_cmd(char* input, HIST historial,ABIERTOLISTA abiertos){
+    printf("HOLa\n");
+}
+/*
+void repeat_cmd(char* input, HIST historial,ABIERTOLISTA abiertos){
     COMMAND c;
     FILES f;
     pid_t pid;
@@ -940,7 +973,7 @@ void repeat_cmd(char* input, HIST historial,ABIERTOLISTA abiertos){
             perror("Error al escanear la línea.\n");
         }
 }
-
+*/
 void cwd(){
     char wd[512];
     getcwd(wd, sizeof(wd));
