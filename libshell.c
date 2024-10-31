@@ -789,10 +789,6 @@ void phistorics(HIST history, char *args, ABIERTOLISTA abiertos){
     }
 }
 void repeat_cmd(char* input, HIST historial,ABIERTOLISTA abiertos){
-    printf("HOLa\n");
-}
-/*
-void repeat_cmd(char* input, HIST historial,ABIERTOLISTA abiertos){
     COMMAND c;
     FILES f;
     pid_t pid;
@@ -973,7 +969,6 @@ void repeat_cmd(char* input, HIST historial,ABIERTOLISTA abiertos){
             perror("Error al escanear la línea.\n");
         }
 }
-*/
 void cwd(){
     char wd[512];
     getcwd(wd, sizeof(wd));
