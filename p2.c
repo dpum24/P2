@@ -21,13 +21,19 @@
 //-hid en todos
 
 //valgrind --leak-check=yes ./p1
+int glob,globini=0;
+float glob2,globini2=1.4;
+char glob3,globini3='c';
 
 int main(int argc, char** argv) {
     COMMAND c;
     FILES f;
+    static float hola,adios,hasta;
+    static int static1=0,static2=1,static3=2;
     MEMALLOC m;
     pid_t pid;
     int counter, control,i,tam;
+    void *del;
     char *args[20];
     char *input = malloc(sizeof(char) * 50);
     void *mem;
@@ -267,7 +273,7 @@ int main(int argc, char** argv) {
                         }
                     else{
                         if(counter == 2){
-                            void *del = cadtop(args[1]);
+                            del = cadtop(args[1]);
                             free(del);
                             suprimemem(&memorial,primeromem(memorial));//Habria que encontrar donde esta
                             printf("Liberado %p",del);
@@ -283,7 +289,26 @@ int main(int argc, char** argv) {
             }
             else if (strcmp(args[0],"memory")==0){
                 if(counter > 1){
-                    
+                    if(strcmp(args[1],"-funcs")==0){
+                        printf("Funciones Programa %p %p %p\n",&delrec,&Recursiva,&listdirrec);
+                        printf("Funciones Libreria %p %p %p\n",&printf,&fopen,&strcat);
+                    }if(strcmp(args[1],"-vars")==0){
+                        printf("Variables locales %p %p %p\n",&historial,&counter,&args);
+                        printf("Variables globales %p %p %p\n",&globini,&globini2,&globini3);
+                        printf("Variables (N.I)globales %p %p %p\n",&glob,&glob2,&glob3);
+                        printf("Variables staticas %p %p %p\n",&static1,&static2,&static3);
+                        printf("Var (N.I.)staticas %p %p %p\n",&hola,&adios,&hasta);
+                    }if(strcmp(args[1],"-blocks")==0){
+
+                    }if(strcmp(args[1],"-all")==0){
+                        printf("Funciones Programa %p %p %p\n",&delrec,&Recursiva,&listdirrec);
+                        printf("Funciones Libreria %p %p %p\n",&printf,&fopen,&strcat);
+                        printf("Variables locales %p %p %p\n",&historial,&counter,&args);
+                        printf("Variables globales %p %p %p\n",&globini,&globini2,&globini3);
+                        printf("Variables (N.I)globales %p %p %p\n",&glob,&glob2,&glob3);
+                        printf("Variables staticas %p %p %p\n",&static1,&static2,&static3);
+                        printf("Var (N.I.)staticas %p %p %p\n",&hola,&adios,&hasta);
+                    }
                 }
             }
             else if (strcmp(args[0],"recurse")==0){
