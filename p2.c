@@ -48,7 +48,6 @@ int main(int argc, char** argv) {
     file_start(&abiertos);
     TNODOHIST dndhist = primerohist(historial);
     TNODOLISTA dndfile = fin(abiertos);
-    TNODOMEM dndmem = primeromem(memorial);
     
     while (1) {
         printf("->");
@@ -232,19 +231,21 @@ int main(int argc, char** argv) {
                 } else {
                         if(strcmp(args[1],"-malloc")==0){
                             tam = atoi(args[2]);
+                            if (tam != 0){//No se puede asignar 0 bytes de memoria
                             mem = malloc(tam);
                             if (mem != NULL){
                             m.pointer = mem;
                             m.size = tam;
                             m.tipo = MALLOC;
-                            insertamem(&memorial,dndmem,m);
-                            dndmem = siguiente(memorial,dndmem);
+                            insertamem(&memorial,finmem(memorial),m);//Insertar en la lista de memoria
                             printf("Memoria malloc asignada en: %p (%d bytes)\n", mem, tam);
                         }
                             else{
                             printf("Error al asignar memoria malloc\n");
                         }
-                    }
+                    }else{
+                        printf("No se pueden asignar 0 bytes\n");
+                    }}
                         else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
                             do_AllocateMmap(args,memorial);
                         }else if(strcmp(args[1],"-shared")==0){
@@ -259,7 +260,15 @@ int main(int argc, char** argv) {
             }else if (strcmp(args[0],"deallocate")==0){
                 if(counter>2){
                     if(strcmp(args[1],"-malloc")==0){
-                            //free(pointerlista)
+                            tam = atoi(args[2]);
+                            for(TNODOMEM d = primeromem(memorial);d !=finmem(memorial);d=siguientemem(memorial,d)){
+                                recuperamem(memorial,d,&m);
+                                if(m.size == tam){
+                                    free(m.pointer);
+                                    printf("Liberado %p\n",m.pointer);
+                                    break;
+                                }
+                            }
                         }
                             else{
                             printf("Error al asignar memoria\n");

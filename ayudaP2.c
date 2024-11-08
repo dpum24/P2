@@ -27,6 +27,9 @@ void ImprimirMemoriaLista(MEM shared){
     for(TNODOMEM d = primeromem(shared);d != finmem(shared);d = siguientemem(shared,d)){
         recuperamem(shared,d,&m);
         printf("Asignado en %p: %lu bytes\n",m.pointer,m.size);
+        if(m.tipo == MAPPED){
+          printf("Fichero %s File descriptor %d\n",m.file,m.df);
+        }
     }
     }else{
         printf("No hay memoria de este tipo\n");
@@ -34,7 +37,7 @@ void ImprimirMemoriaLista(MEM shared){
 }
 
 void LiberarMemoriaLista(MEM *lista){
-   if(!esVaciamem(lista)){
+   if(!esVaciamem(*lista)){
       MEMALLOC m;
       for(TNODOMEM d = primeromem(*lista);d != finmem(*lista);d = siguientemem(*lista,d)){
         recuperamem(lista,d,&m);
@@ -166,9 +169,9 @@ void do_AllocateMmap(char *arg[],MEM mmap)
      void *p;
      int protection=0;
      
-     if (arg[1]==NULL)
+     if (arg[2]==NULL)
             {
-            ImprimirMemoriaLista(&mmap); 
+            ImprimirMemoriaLista(mmap); 
             return;
             }
      if ((perm=arg[3])!=NULL && strlen(perm)<4) {
@@ -179,7 +182,7 @@ void do_AllocateMmap(char *arg[],MEM mmap)
      if ((p=MapearFichero(arg[2],protection,&mmap))==NULL)
              perror ("Imposible mapear fichero");
      else
-             printf ("fichero %s mapeado en %p\n", arg[1], p);
+             printf ("fichero %s mapeado en %p\n", arg[2], p);
 }
 
 void do_DeallocateDelkey (char *args[])
