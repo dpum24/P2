@@ -548,6 +548,8 @@ void listdir(char *path,int mode) {
             }if (mode == 4) {  // Para -hid, lista archivos ocultos
             if (ent->d_name[0] == '.') {
                 printf("%lu\t%s\n", strat.st_size, ent->d_name);
+                printf(".");
+                printf("..");
             }
         }
         }
