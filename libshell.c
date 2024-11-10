@@ -546,14 +546,17 @@ void listdir(char *path,int mode) {
                    strat.st_size,                
                    ent->d_name);
             }if (mode == 4) {  // Para -hid, lista archivos ocultos
-            if (ent->d_name[0] == '.') {
-                printf("%lu\t%s\n", strat.st_size, ent->d_name);
-                printf(".");
-                printf("..");
+                printf("%lu\t.\n", strat.st_size);
+                printf("%lu\t..\n", strat.st_size);
+
+                // Itera sobre los archivos en el directorio
+                while ((ent = readdir(dir)) != NULL) {
+                    if (ent->d_name[0] == '.' && strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
+                        printf("%lu\t%s\n", strat.st_size, ent->d_name);
+                    }
+                }
             }
-        }
-        }
-    closedir(dir);
+            closedir(dir);
 }
 
 void longlistdirrec(char* path){
