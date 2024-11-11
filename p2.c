@@ -19,6 +19,7 @@
 
 //falta listfile
 //-hid en todos
+//En read y readfile, el argumento cont no lo coge correctamente
 
 //valgrind --leak-check=yes ./p1
 int glob,globini=0;
@@ -32,10 +33,10 @@ int main(int argc, char** argv) {
     static float hola,adios,hasta;
     static int static1=0,static2=1,static3=2;
     pid_t pid;
+    size_t cont, nbytes;
     int counter, control,i,tam;
     void *del;
     char *args[20];
-    unsigned char ch;
     char *input = malloc(sizeof(char) * 50);
     void *mem;
     ABIERTOLISTA abiertos;
@@ -289,7 +290,6 @@ int main(int argc, char** argv) {
                                 if(m.pointer == del && m.tipo==MALLOC){
                                     free(del);
                                     suprimemem(&memorial,nodomem);
-                                    printf("Liberado %p\n",del);
                                     break;
                                 }
                                 if(nodomem==finmem(memorial)){
@@ -304,7 +304,7 @@ int main(int argc, char** argv) {
                 if(counter == 4){
                     del = cadtop(args[1]);
                     LlenarMemoria(del,atoi(args[2]),args[3][0]);
-                    printf("Llenando %d bytes de memoria con el byte (%hhx) a partir de la direccion %p\n",atoi(args[2]),args[3][0],del);
+                    printf("Llenando %d bytes de memoria con el byte %hhx a partir de la direccion %p\n",atoi(args[2]),args[3][0],del);
                 }
             }
             else if (strcmp(args[0],"memory")==0){
@@ -334,15 +334,24 @@ int main(int argc, char** argv) {
             else if (strcmp(args[0],"recurse")==0){
                 Recursiva(atoi(args[1]));
             }
-            else if(strcmp(args[0],"readfile")==0){
+            else if(strcmp(args[0],"readfile")==0){//En este no tiene que estar abierto
                 Cmd_ReadFile(args);
             }
-            else if(strcmp(args[0],"read")==0){
-                if(LeerFichero(args[1],(void*)args[2],atoi(args[3]))==-1){
+            else if(strcmp(args[0],"read")==0){//Unica diferencia es que tiene que estar abierto
+                del = cadtop(args[2]);
+                if (args[3]==NULL){
+	                cont=-1;
+                }else{
+                    cont = strtoul(args[3], NULL, 10);
+                }
+                nbytes = LeerFichero(args[1],del,cont);
+                if(cont==-1){
                     perror("Error al leer el archivo");
                 }else{
-                    //printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[1],p);
+                    printf ("leidos %lld bytes de %s en %p\n",(long long) cont,args[1],del);
                 }
+            }else if (strcmp("memdump",args[0])==0){
+                Cmd_memdump(args);
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();

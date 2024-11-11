@@ -240,8 +240,8 @@ void Cmd_ReadFile (char *ar[])
 	return;
    }
    p=cadtop(ar[2]);  /*convertimos de cadena a puntero*/
-   if (ar[2]!=NULL)
-	cont=(size_t) atoll(ar[2]);
+   if (ar[3]!=NULL)
+	cont=(size_t) atoll(ar[3]);
 
    if ((n=LeerFichero(ar[1],p,cont))==-1)
 	perror ("Imposible leer fichero");
