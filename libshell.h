@@ -29,7 +29,7 @@ void revlist(char* path, int mode);
 void longrevlist(char* path);
 void delrec(char* path);
 void Cmd_memdump(char *args[]);
-void WriteFichero(char *f, void *p, size_t cont);
+ssize_t WriteFichero(char *f, void *p, size_t cont);
 ssize_t LeerFichero2 (int df, void *p, size_t cont);
 void Cmd_writefile(char *args[]);
 void cwd();

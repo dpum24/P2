@@ -1062,3 +1062,19 @@ void Cmd_writefile(char *args[]){
    else
 	printf ("Escritos %lld bytes de %s en %p\n",(long long) n,args[1],p);
 }
+
+ssize_t WriteFichero2(int df, void *p, size_t cont){
+    struct stat s;
+    ssize_t  n;  
+    int aux;   
+    if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
+	cont=s.st_size;
+    if ((n=write(df,p,cont))==-1){
+	aux=errno;
+	close(df);
+	errno=aux;
+	return -1;
+    }
+    close (df);
+    return n;
+}

@@ -21,7 +21,6 @@
 //Allocate listas
 //memory -> blocks
 //Deallocate -mmap y -shared
-//write
 
 //valgrind --leak-check=yes ./p1
 int glob,globini=10;
@@ -366,6 +365,26 @@ int main(int argc, char** argv) {
                 Cmd_memdump(args);
             }else if (strcmp(args[0],"writefile")==0){
                 Cmd_writefile(args);
+            }else if (strcmp(args[0],"write")==0){
+                if(counter==4){
+                    for(TNODOLISTA a = primero(abiertos);a!=fin(abiertos);a=siguiente(abiertos,a)){
+                        recupera(abiertos,a,&f);
+                        if(f.filedes == atoi(args[1])){
+                            del=cadtop(args[2]);  /*convertimos de cadena a puntero*/
+                            if (args[3]!=NULL){
+	                        cont=(size_t) atoll(args[3]);
+                            }
+                            if ((tam=WriteFichero2(f.filedes,del,cont))==-1){
+                                perror ("Imposible leer fichero");
+                            }
+                        else{
+	                    printf ("leidos %lld bytes de %s en %p\n",(long long) tam,f.filename,del);
+                        }
+                        break;
+                        }
+                    
+                }
+            }
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
