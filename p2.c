@@ -18,7 +18,6 @@
 #include "libshell.h"
 
 //falta listfile
-//-hid en todos
 
 //valgrind --leak-check=yes ./p1
 int glob,globini=0;
