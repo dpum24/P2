@@ -993,3 +993,39 @@ void Cmd_memdump(char *args[]) {
     }
     printf("\n");
 }
+ssize_t WriteFichero(char *f, void *p, size_t cont){
+    struct stat s;
+    ssize_t  n;  
+    int df,aux;
+
+    if (stat (f,&s)==-1 || (df=open(f,O_WRONLY))==-1)
+	return -1;     
+    if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
+	cont=s.st_size;
+    if ((n=write(df,p,cont))==-1){
+	aux=errno;
+	close(df);
+	errno=aux;
+	return -1;
+    }
+    close (df);
+    return n;
+}
+
+void Cmd_writefile(char *args[]){
+    void *p;
+    size_t cont=-1;  /*si no pasamos tamano se lee entero */
+    ssize_t n;
+    if (args[1]==NULL || args[2]==NULL){
+	printf ("faltan parametros\n");
+	return;
+   }
+   p=(void *) strtoull(args[2], NULL, 16); /*convertimos de cadena a puntero Basicamente cadtop() */
+   if (args[3]!=NULL)
+	cont=(size_t) atoll(args[3]);
+
+   if ((n=WriteFichero(args[1],p,cont))==-1)
+	perror ("Imposible leer fichero");
+   else
+	printf ("Escritos %lld bytes de %s en %p\n",(long long) n,args[1],p);
+}

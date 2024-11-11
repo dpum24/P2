@@ -19,6 +19,10 @@
 
 //falta listfile
 //-hid en todos
+//En read, LeerFichero repite el open, que en teoria esta hecho
+//Allocate listas
+//Deallocate -mmap y -shared
+//writefile y write
 
 //valgrind --leak-check=yes ./p1
 int glob,globini=10;
@@ -326,9 +330,9 @@ int main(int argc, char** argv) {
                         printf("Variables staticas %p %p %p\n",&static1,&static2,&static3);
                         printf("Var (N.I.)staticas %p %p %p\n",&hola,&adios,&hasta);
                     }if(strcmp(args[1],"-blocks")==0){
-
+                        
                     }
-                    if(strcmp(args[1],"-pmap")){
+                    if(strcmp(args[1],"-pmap")==0){
                         Do_pmap();
                     }
                 }
@@ -340,7 +344,7 @@ int main(int argc, char** argv) {
                 Cmd_ReadFile(args);
             }
             else if(strcmp(args[0],"read")==0){//Unica diferencia es que tiene que estar abierto
-                if(counter > 1 && counter < 5){
+                if(counter==4){
                     for(TNODOLISTA a = primero(abiertos);a!=fin(abiertos);a=siguiente(abiertos,a)){
                         recupera(abiertos,a,&f);
                         if(f.filedes == atoi(args[1])){
@@ -361,6 +365,8 @@ int main(int argc, char** argv) {
             }
             }else if (strcmp("memdump",args[0])==0){
                 Cmd_memdump(args);
+            }else if (strcmp(args[0],"writefile")==0){
+                Cmd_writefile(args);
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
