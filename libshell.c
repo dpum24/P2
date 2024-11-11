@@ -559,6 +559,7 @@ void listdir(char *path,int mode) {
             }
             closedir(dir);
 }
+}
 
 void longlistdirrec(char* path){
     struct dirent *ent;
