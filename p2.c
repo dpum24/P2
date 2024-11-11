@@ -20,7 +20,7 @@
 //falta listfile
 
 //valgrind --leak-check=yes ./p1
-int glob,globini=0;
+int glob,globini=10;
 float glob2,globini2=1.4;
 char glob3,globini3='c';
 
@@ -31,10 +31,10 @@ int main(int argc, char** argv) {
     static float hola,adios,hasta;
     static int static1=0,static2=1,static3=2;
     pid_t pid;
+    size_t cont, nbytes;
     int counter, control,i,tam;
     void *del;
     char *args[20];
-    unsigned char ch;
     char *input = malloc(sizeof(char) * 50);
     void *mem;
     ABIERTOLISTA abiertos;
@@ -288,7 +288,6 @@ int main(int argc, char** argv) {
                                 if(m.pointer == del && m.tipo==MALLOC){
                                     free(del);
                                     suprimemem(&memorial,nodomem);
-                                    printf("Liberado %p\n",del);
                                     break;
                                 }
                                 if(nodomem==finmem(memorial)){
@@ -303,7 +302,7 @@ int main(int argc, char** argv) {
                 if(counter == 4){
                     del = cadtop(args[1]);
                     LlenarMemoria(del,atoi(args[2]),args[3][0]);
-                    printf("Llenando %d bytes de memoria con el byte (%hhx) a partir de la direccion %p\n",atoi(args[2]),args[3][0],del);
+                    printf("Llenando %d bytes de memoria con el byte %hhx a partir de la direccion %p\n",atoi(args[2]),args[3][0],del);
                 }
             }
             else if (strcmp(args[0],"memory")==0){
@@ -328,20 +327,39 @@ int main(int argc, char** argv) {
                     }if(strcmp(args[1],"-blocks")==0){
 
                     }
+                    if(strcmp(args[1],"-pmap")){
+                        Do_pmap();
+                    }
                 }
             }
             else if (strcmp(args[0],"recurse")==0){
                 Recursiva(atoi(args[1]));
             }
-            else if(strcmp(args[0],"readfile")==0){
+            else if(strcmp(args[0],"readfile")==0){//En este no tiene que estar abierto
                 Cmd_ReadFile(args);
             }
-            else if(strcmp(args[0],"read")==0){
-                if(LeerFichero(args[1],(void*)args[2],atoi(args[3]))==-1){
-                    perror("Error al leer el archivo");
-                }else{
-                    //printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[1],p);
+            else if(strcmp(args[0],"read")==0){//Unica diferencia es que tiene que estar abierto
+                if(counter > 1 && counter < 5){
+                    for(TNODOLISTA a = primero(abiertos);a!=fin(abiertos);a=siguiente(abiertos,a)){
+                        recupera(abiertos,a,&f);
+                        if(f.filedes == atoi(args[1])){
+                            del=cadtop(args[2]);  /*convertimos de cadena a puntero*/
+                            if (args[3]!=NULL){
+	                        cont=(size_t) atoll(args[3]);
+                            }
+                            if ((tam=LeerFichero(f.filename,del,cont))==-1){
+                                perror ("Imposible leer fichero");
+                            }
+                        else{
+	                    printf ("leidos %lld bytes de %s en %p\n",(long long) tam,f.filename,del);
+                        }
+                        break;
+                        }
+                    
                 }
+            }
+            }else if (strcmp("memdump",args[0])==0){
+                Cmd_memdump(args);
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();

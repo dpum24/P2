@@ -15,6 +15,7 @@
 #include <pwd.h> 
 #include <grp.h>
 #include <errno.h>
+#include <stdint.h>
 #include "abiertolista.h"
 #include "memlist.h"
 #include "listahist.h"
@@ -980,4 +981,20 @@ void cwd(){
     char wd[512];
     getcwd(wd, sizeof(wd));
     printf("%s\n", wd);
+}
+void Cmd_memdump(char *args[]) {
+    void *del = (void *) strtoull(args[1], NULL, 16);//Basicamente cadtop()
+    size_t cont = (size_t) atoll(args[2]);
+
+    printf("Volcando %lld bytes desde la direccion %p\n", (long long)cont, del);
+    uint8_t *ptr = (uint8_t *)del;
+    for (size_t i = 0; i < cont; i++) {
+        printf("%02x ", ptr[i]);
+        
+        // 25 bytes por linea
+        if ((i + 1) % 25 == 0) {
+            printf("\n");
+        }
+    }
+    printf("\n");
 }
