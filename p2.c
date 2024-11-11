@@ -18,11 +18,10 @@
 #include "libshell.h"
 
 //falta listfile
-//-hid en todos
-//En read, LeerFichero repite el open, que en teoria esta hecho
 //Allocate listas
+//memory -> blocks
 //Deallocate -mmap y -shared
-//writefile y write
+//write
 
 //valgrind --leak-check=yes ./p1
 int glob,globini=10;
@@ -36,7 +35,7 @@ int main(int argc, char** argv) {
     static float hola,adios,hasta;
     static int static1=0,static2=1,static3=2;
     pid_t pid;
-    size_t cont, nbytes;
+    size_t cont;
     int counter, control,i,tam;
     void *del;
     char *args[20];
@@ -136,7 +135,7 @@ int main(int argc, char** argv) {
                 } else {
                     if (counter == 3) {
                         if (strcmp(args[1], "-hid") == 0) {
-                            listdir(args[2],0);
+                            listdir(args[2],4);
                         } else if (strcmp(args[1], "-acc") == 0) { // Tiempo de acceso
                            listdir(args[2],1);
                         } else if (strcmp(args[1], "-link") == 0) { // Si es enlace simbolico, mostrar directorio a que apunta
@@ -352,7 +351,7 @@ int main(int argc, char** argv) {
                             if (args[3]!=NULL){
 	                        cont=(size_t) atoll(args[3]);
                             }
-                            if ((tam=LeerFichero(f.filename,del,cont))==-1){
+                            if ((tam=LeerFichero2(f.filedes,del,cont))==-1){
                                 perror ("Imposible leer fichero");
                             }
                         else{
