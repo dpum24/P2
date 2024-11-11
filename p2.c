@@ -19,10 +19,9 @@
 
 //falta listfile
 //-hid en todos
-//En read y readfile, el argumento cont no lo coge correctamente
 
 //valgrind --leak-check=yes ./p1
-int glob,globini=0;
+int glob,globini=10;
 float glob2,globini2=1.4;
 char glob3,globini3='c';
 
@@ -329,6 +328,9 @@ int main(int argc, char** argv) {
                     }if(strcmp(args[1],"-blocks")==0){
 
                     }
+                    if(strcmp(args[1],"-pmap")){
+                        Do_pmap();
+                    }
                 }
             }
             else if (strcmp(args[0],"recurse")==0){
@@ -338,18 +340,25 @@ int main(int argc, char** argv) {
                 Cmd_ReadFile(args);
             }
             else if(strcmp(args[0],"read")==0){//Unica diferencia es que tiene que estar abierto
-                del = cadtop(args[2]);
-                if (args[3]==NULL){
-	                cont=-1;
-                }else{
-                    cont = strtoul(args[3], NULL, 10);
+                if(counter > 1 && counter < 5){
+                    for(TNODOLISTA a = primero(abiertos);a!=fin(abiertos);a=siguiente(abiertos,a)){
+                        recupera(abiertos,a,&f);
+                        if(f.filedes == atoi(args[1])){
+                            del=cadtop(args[2]);  /*convertimos de cadena a puntero*/
+                            if (args[3]!=NULL){
+	                        cont=(size_t) atoll(args[3]);
+                            }
+                            if ((tam=LeerFichero(f.filename,del,cont))==-1){
+                                perror ("Imposible leer fichero");
+                            }
+                        else{
+	                    printf ("leidos %lld bytes de %s en %p\n",(long long) tam,f.filename,del);
+                        }
+                        break;
+                        }
+                    
                 }
-                nbytes = LeerFichero(args[1],del,cont);
-                if(cont==-1){
-                    perror("Error al leer el archivo");
-                }else{
-                    printf ("leidos %lld bytes de %s en %p\n",(long long) cont,args[1],del);
-                }
+            }
             }else if (strcmp("memdump",args[0])==0){
                 Cmd_memdump(args);
             }
