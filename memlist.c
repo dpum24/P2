@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef enum {
     MALLOC,
@@ -14,6 +15,7 @@ typedef struct MEMALLOC{
     char *file;
     int df;
     __key_t clave;
+    struct tm time;
 }MEMALLOC;
 
 

@@ -39,13 +39,16 @@ void ImprimirMemoriaLista(MEM shared){
     for(TNODOMEM d = primeromem(shared);d != finmem(shared);d = siguientemem(shared,d)){
         recuperamem(shared,d,&m);
         if(m.tipo == MAPPED){
-            //0x771708ce9000               26 Nov 18 10:03 hola.txt  (descriptor 3)
-            printf("Fichero %s File descriptor %d\n",m.file,m.df);
+            printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s  %s (descriptor %d)\n",m.pointer,
+                                 m.size,m.time.tm_mday,m.time.tm_mon+1,m.time.tm_hour,m.time.tm_min,getAllocationTypeName(m.tipo),m.file,m.df);
         }if(m.tipo == SHARED){
-         //0x795fa6259000               20 Nov 18 09:43 shared (key 17)
-         printf("Key: %d\n",m.clave);
+            printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s (key %d)\n",m.pointer,
+                                 m.size,m.time.tm_mday,m.time.tm_mon+1,m.time.tm_hour,m.time.tm_min,getAllocationTypeName(m.tipo),m.clave);
         }
-        printf("\t %p \t %lu \t %s \n",m.pointer,m.size,getAllocationTypeName(m.tipo));
+        if(m.tipo == MALLOC){
+        printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s \n",m.pointer,
+                                 m.size,m.time.tm_mday,m.time.tm_mon+1,m.time.tm_hour,m.time.tm_min,getAllocationTypeName(m.tipo));
+        }
     }
     }else{
         printf("No hay memoria de este tipo\n");
@@ -92,6 +95,8 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam,MEM *shared)
     void * p;
     int aux,id,flags=0777;
     struct shmid_ds s;
+    time_t t;
+    struct tm *now;
     MEMALLOC m;
     if (tam)     /*tam distito de 0 indica crear */
         flags=flags | IPC_CREAT | IPC_EXCL; /*cuando no es crear pasamos de tamano 0*/
@@ -111,6 +116,11 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam,MEM *shared)
     m.tipo = SHARED;
     m.clave = clave;
     m.size = s.shm_segsz;
+    t = time(NULL);
+    now = localtime(&t);
+    if (now != NULL) {
+       m.time = *now; 
+   }
     insertamem(shared,finmem(*shared),m);
  /* Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave); */
     return (p);
@@ -161,6 +171,8 @@ void * MapearFichero (char * fichero, int protection,MEM *list)
 {
     int df, map=MAP_PRIVATE,modo=O_RDONLY;
     struct stat s;
+    struct tm *now;
+    time_t t;
     void *p;
     MEMALLOC m;
 
@@ -175,6 +187,11 @@ void * MapearFichero (char * fichero, int protection,MEM *list)
     m.file = fichero;
     m.size = s.st_size;
     m.tipo = MAPPED;
+    t = time(NULL);
+    now = localtime(&t);
+    if (now != NULL) {
+         m.time = *now; 
+   }
     insertamem(list,finmem(*list),m);
     return p;
 }
@@ -201,11 +218,11 @@ void do_AllocateMmap(char *arg[],MEM mmap)
              printf ("fichero %s mapeado en %p\n", arg[2], p);
 }
 
-void do_DeallocateDelkey (char *args[])
+void do_DeallocateDelkey (char *args[])//No borra de la lista la memoria
 {
    key_t clave;
    int id;
-   char *key=args[1];
+   char *key=args[2];
 
    if (key==NULL || (clave=(key_t) strtoul(key,NULL,10))==IPC_PRIVATE){
         printf ("      delkey necesita clave_valida\n");

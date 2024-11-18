@@ -18,8 +18,8 @@
 #include "libshell.h"
 
 //falta listfile
-//En listar memoria, incluir fecha de asignacion de la memoria y hacer el formato correcto
-//Deallocate -mmap y -shared
+//memory funcs not supported for repeat_cmd()
+//Deallocate -mmap 
 //Deallocate -delkey no elimina de la lista
 
 //valgrind --leak-check=yes ./p1
@@ -35,6 +35,8 @@ int main(int argc, char** argv) {
     static int static1=0,static2=1,static3=2;
     pid_t pid;
     size_t cont;
+    time_t t;
+    struct tm *now;
     int counter, control,i,tam;
     void *del;
     char *args[20];
@@ -239,6 +241,11 @@ int main(int argc, char** argv) {
                             m.pointer = mem;
                             m.size = tam;
                             m.tipo = MALLOC;
+                            t = time(NULL);
+                            now = localtime(&t);
+                            if (now != NULL) {
+                                m.time = *now; 
+                        }
                             insertamem(&memorial,finmem(memorial),m);//Insertar en la lista de memoria
                             printf("Memoria malloc asignada en: %p (%d bytes)\n", mem, tam);
                         }
@@ -269,10 +276,6 @@ int main(int argc, char** argv) {
                                 }
                             }
                         }
-                            else{
-                            printf("Error al asignar memoria\n");
-                        }
-                    }
                         else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
                             printf("Mmap dealloc\n");
                         }else if(strcmp(args[1],"-shared")==0){
@@ -293,10 +296,9 @@ int main(int argc, char** argv) {
                                 if(nodomem==finmem(memorial)){
                                 printf("Bloque de memoria no asignado\n");
                             }
-                        }
-                            
-                        }
+                            }}
                 }
+            }
             }
             else if(strcmp(args[0],"memfill")==0){
                 if(counter == 4){

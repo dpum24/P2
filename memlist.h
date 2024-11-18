@@ -11,6 +11,7 @@ typedef struct MEMALLOC{
     char *file;
     int df;
     __key_t clave;
+    struct tm time;
 }MEMALLOC;
 
 

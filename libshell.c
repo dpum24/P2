@@ -19,6 +19,7 @@
 #include "abiertolista.h"
 #include "memlist.h"
 #include "listahist.h"
+#include <sys/ipc.h>
 
 void authors(){
     printf("Rubén Sayáns Fortes, ruben.sayans@udc.es\nDiego Emilio Pumarol Guerrero, diego.pumarol@udc.es\n");
@@ -1077,4 +1078,25 @@ ssize_t WriteFichero2(int df, void *p, size_t cont){
     }
     close (df);
     return n;
+}
+
+
+void DetachSharedMemory(void *p, key_t clave, MEM *shared) {
+    MEMALLOC nodo;
+    for(TNODOMEM p = primeromem(*shared);p!=finmem(*shared);p=siguientemem(*shared,p)){
+        recuperamem(*shared,p,&nodo);
+        if(nodo.pointer == p){
+            break;
+        }
+    }
+    if (nodo.pointer != p) {
+        printf("El bloque de memoria compartida no está en la lista.\n");
+        return;
+    }
+    if (shmdt(p) == -1) {
+        perror("Error al desvincular la memoria compartida");
+        return;
+    }
+    printf("Memoria compartida desvinculada: %p\n", p);
+    eliminarNodo(shared, nodo);
 }
