@@ -1,7 +1,7 @@
 #ifndef AYUDAP2_H
 #define AYUDAP2_H
 
-void ImprimirMemoriaLista(MEM *shared);
+void ImprimirMemoriaLista(MEM shared);
 void LiberarMemoriaLista(MEM lista);
 void Recursiva (int n);
 void LlenarMemoria (void *p, size_t cont, unsigned char byte);

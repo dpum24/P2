@@ -18,9 +18,9 @@
 #include "libshell.h"
 
 //falta listfile
-//Allocate listas
-//memory -> blocks
+//En listar memoria, incluir fecha de asignacion de la memoria y hacer el formato correcto
 //Deallocate -mmap y -shared
+//Deallocate -delkey no elimina de la lista
 
 //valgrind --leak-check=yes ./p1
 int glob,globini=10;
@@ -255,9 +255,6 @@ int main(int argc, char** argv) {
                         }else if(strcmp(args[1],"-createshared")==0){
                             do_AllocateCreateshared(args,memorial);
                         }
-                    else{
-                        cwd();
-                    }
                 }
             }else if (strcmp(args[0],"deallocate")==0){
                 if(counter>2){
@@ -327,8 +324,9 @@ int main(int argc, char** argv) {
                         printf("Variables (N.I)globales %p %p %p\n",&glob,&glob2,&glob3);
                         printf("Variables staticas %p %p %p\n",&static1,&static2,&static3);
                         printf("Var (N.I.)staticas %p %p %p\n",&hola,&adios,&hasta);
+                        ImprimirMemoriaLista(memorial);
                     }if(strcmp(args[1],"-blocks")==0){
-                        
+                        ImprimirMemoriaLista(memorial);
                     }
                     if(strcmp(args[1],"-pmap")==0){
                         Do_pmap();

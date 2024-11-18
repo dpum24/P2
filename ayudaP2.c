@@ -21,15 +21,31 @@
 
 #define TAMANO 2048
 
+const char* getAllocationTypeName(AllocationType type) {
+    switch (type) {
+        case MALLOC: return "MALLOC";
+        case SHARED: return "SHARED";
+        case MAPPED: return "MAPPED";
+        default: return "UNKNOWN";
+    }
+}
+
 void ImprimirMemoriaLista(MEM shared){
     MEMALLOC m;
+    pid_t pid;
+    pid = getpid();
+    printf("******Lista de bloques asignados para el proceso %d\n",pid);
     if(esVaciamem(shared)!=1){
     for(TNODOMEM d = primeromem(shared);d != finmem(shared);d = siguientemem(shared,d)){
         recuperamem(shared,d,&m);
-        printf("Asignado en %p: %lu bytes\n",m.pointer,m.size);
         if(m.tipo == MAPPED){
-          printf("Fichero %s File descriptor %d\n",m.file,m.df);
+            //0x771708ce9000               26 Nov 18 10:03 hola.txt  (descriptor 3)
+            printf("Fichero %s File descriptor %d\n",m.file,m.df);
+        }if(m.tipo == SHARED){
+         //0x795fa6259000               20 Nov 18 09:43 shared (key 17)
+         printf("Key: %d\n",m.clave);
         }
+        printf("\t %p \t %lu \t %s \n",m.pointer,m.size,getAllocationTypeName(m.tipo));
     }
     }else{
         printf("No hay memoria de este tipo\n");
