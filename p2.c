@@ -19,10 +19,9 @@
 
 //falta listfile
 //memory funcs not supported for repeat_cmd()
-//Deallocate -mmap 
 //Deallocate -delkey no elimina de la lista
 
-//valgrind --leak-check=yes ./p1
+//valgrind --leak-check=yes ./p2
 int glob,globini=10;
 float glob2,globini2=1.4;
 char glob3,globini3='c';
@@ -279,7 +278,7 @@ int main(int argc, char** argv) {
                         else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
                             printf("Mmap dealloc\n");
                         }else if(strcmp(args[1],"-shared")==0){
-                            printf("Shared Dealloc\n");
+                            DetachSharedMemory(atoi(args[2]),&memorial);
                         }else if(strcmp(args[1],"-delkey")==0){
                             do_DeallocateDelkey(args);
                         }

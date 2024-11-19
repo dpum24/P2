@@ -1100,3 +1100,54 @@ void DetachSharedMemory(void *p, key_t clave, MEM *shared) {
     printf("Memoria compartida desvinculada: %p\n", p);
     eliminarNodo(shared, nodo);
 }
+
+void DetachSharedMemoryByKey(key_t cl, MEM *shared) {
+    MEMALLOC nodo;
+    TNODOMEM p;
+    for(p = primeromem(*shared);p!=finmem(*shared);p=siguientemem(*shared,p)){
+        recuperamem(*shared,p,&nodo);
+        if(nodo.pointer == p){
+            break;
+        }
+    }
+    if(p == finmem(*shared)){
+        printf("No se ha mapeado el fichero\n");
+        return;
+    }
+    if (shmdt(nodo.pointer) == -1) {
+        perror("Error al desvincular la memoria compartida");
+        return;
+    }
+
+    printf("Memoria compartida desvinculada: clave %lu, dirección %p\n",
+           (unsigned long)cl, nodo.pointer);
+    suprimemem(shared, p); 
+}
+
+void DetachMmap(char *file,MEM *memorial){
+    int df;
+    MEMALLOC nodo;
+    TNODOMEM p;
+    for(p = primeromem(*memorial);p!=finmem(*memorial);p=siguientemem(*memorial,p)){
+        recuperamem(*memorial,p,&nodo);
+        if(strcmp(nodo.file,file)==0){
+            break;
+        }
+    }
+    if(p == finmem(*memorial)){
+        printf("No se ha mapeado el fichero especificado\n");
+        return;
+    }
+    df = open(file,O_RDWR);
+    if (df == -1) {
+        perror("Error al abrir el archivo");
+        return;
+    }
+    if(munmap(nodo.pointer,sizeof(file))==-1){
+        perror("Error al desmapear Memoria\n");
+        return;
+    }
+    close(df);
+    suprimemem(memorial,p);
+    printf("Memorial Desmapeada Correctamente\n");
+}

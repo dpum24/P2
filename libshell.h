@@ -1,3 +1,4 @@
+#include <sys/ipc.h>
 #ifndef LIBSHELL_H
 #define LIBSHELL_H
 
@@ -33,5 +34,7 @@ ssize_t WriteFichero(char *f, void *p, size_t cont);
 ssize_t LeerFichero2 (int df, void *p, size_t cont);
 void Cmd_writefile(char *args[]);
 ssize_t WriteFichero2(int df, void *p, size_t cont);
+void DetachSharedMemory(key_t clave, MEM *shared);
+void DetachMmap(char *file,MEM *memorial);
 void cwd();
 #endif
