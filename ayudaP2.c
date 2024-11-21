@@ -63,6 +63,16 @@ void LiberarMemoriaLista(MEM *lista){
         if(m.tipo == MALLOC){
          free(m.pointer);
         }
+        if(m.tipo == SHARED){
+         if (shmdt(m.pointer) == -1) {
+            perror("Error al desvincular memoria compartida");
+        }
+        if(m.tipo == MAPPED){
+         if (munmap(m.pointer,m.size) == -1) {
+            perror("Error al desmapear memoria");
+        }
+        }
+        }
     }
    }else{
       return;
@@ -218,7 +228,7 @@ void do_AllocateMmap(char *arg[],MEM mmap)
              printf ("fichero %s mapeado en %p\n", arg[2], p);
 }
 
-void do_DeallocateDelkey (char *args[])//No borra de la lista la memoria
+void do_DeallocateDelkey (char *args[])
 {
    key_t clave;
    int id;

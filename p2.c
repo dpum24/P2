@@ -19,7 +19,6 @@
 
 //falta listfile
 //memory funcs not supported for repeat_cmd()
-//Deallocate -delkey no elimina de la lista
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
@@ -349,7 +348,7 @@ int main(int argc, char** argv) {
                             if (args[3]!=NULL){
 	                        cont=(size_t) atoll(args[3]);
                             }
-                            if ((tam=LeerFichero2(f.filedes,del,cont))==-1){
+                            if ((tam=LeerFichero2(f.filedes,f.filename,del,cont))==-1){
                                 perror ("Imposible leer fichero");
                             }
                         else{
@@ -373,7 +372,7 @@ int main(int argc, char** argv) {
                             if (args[3]!=NULL){
 	                        cont=(size_t) atoll(args[3]);
                             }
-                            if ((tam=WriteFichero2(f.filedes,del,cont))==-1){
+                            if ((tam=WriteFichero2(f.filedes,f.filename,del,cont))==-1){
                                 perror ("Imposible leer fichero");
                             }
                         else{
@@ -388,12 +387,12 @@ int main(int argc, char** argv) {
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell
-                printf("Saliendo del shell...\n");
                 free(input); // Al salir liberamos memoria
                 destruye(&abiertos);
                 destruyehist(&historial);
                 LiberarMemoriaLista(&memorial);
                 destruyemem(&memorial);
+                printf("Saliendo del shell...\n");
                 break;
             } else {
                 printf("Comando no reconocido: %s\n", args[0]);

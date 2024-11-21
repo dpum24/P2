@@ -20,6 +20,10 @@
 #include "memlist.h"
 #include "listahist.h"
 #include <sys/ipc.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/mman.h>
+
 
 void authors(){
     printf("Rubén Sayáns Fortes, ruben.sayans@udc.es\nDiego Emilio Pumarol Guerrero, diego.pumarol@udc.es\n");
@@ -1011,11 +1015,14 @@ void Cmd_memdump(char *args[]) {
     }
     printf("\n");
 }
-ssize_t LeerFichero2 (int df, void *p, size_t cont)
+ssize_t LeerFichero2 (int df,char *file,void *p, size_t cont)//
 {
    struct stat s;
    ssize_t  n;  
-   int aux;    
+   int aux;
+   if (stat (file,&s)==-1){
+	return -1;
+    }
    if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
 	cont=s.st_size;
    if ((n=read(df,p,cont))==-1){
@@ -1064,10 +1071,13 @@ void Cmd_writefile(char *args[]){
 	printf ("Escritos %lld bytes de %s en %p\n",(long long) n,args[1],p);
 }
 
-ssize_t WriteFichero2(int df, void *p, size_t cont){
+ssize_t WriteFichero2(int df,char *file, void *p, size_t cont){
     struct stat s;
     ssize_t  n;  
-    int aux;   
+    int aux;
+    if (stat (file,&s)==-1){
+	return -1;
+    } 
     if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
 	cont=s.st_size;
     if ((n=write(df,p,cont))==-1){
@@ -1083,9 +1093,10 @@ ssize_t WriteFichero2(int df, void *p, size_t cont){
 
 void DetachSharedMemory(void *p, key_t clave, MEM *shared) {
     MEMALLOC nodo;
-    for(TNODOMEM p = primeromem(*shared);p!=finmem(*shared);p=siguientemem(*shared,p)){
-        recuperamem(*shared,p,&nodo);
-        if(nodo.pointer == p){
+    TNODOMEM n;
+    for(n = primeromem(*shared);n!=finmem(*shared);n=siguientemem(*shared,n)){
+        recuperamem(*shared,n,&nodo);
+        if(nodo.pointer == n){
             break;
         }
     }
@@ -1098,7 +1109,7 @@ void DetachSharedMemory(void *p, key_t clave, MEM *shared) {
         return;
     }
     printf("Memoria compartida desvinculada: %p\n", p);
-    eliminarNodo(shared, nodo);
+    suprimemem(shared, p);
 }
 
 void DetachSharedMemoryByKey(key_t cl, MEM *shared) {
