@@ -35,6 +35,6 @@ ssize_t LeerFichero2 (int df,char *f, void *p, size_t cont);
 void Cmd_writefile(char *args[]);
 ssize_t WriteFichero2(int df, char *file,void *p, size_t cont);
 void DetachSharedMemory(key_t clave, MEM *shared);
-void DetachMmap(char *file,MEM *memorial);
+void DetachMmap(char *file,MEM *memorial,ABIERTOLISTA *abiertos);
 void cwd();
 #endif

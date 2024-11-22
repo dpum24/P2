@@ -19,6 +19,8 @@
 
 //falta listfile
 //memory funcs not supported for repeat_cmd()
+//En writefile, crea un fichero nuevo, no se le pone uno antiguo
+//readfile crea un archivo nuevo, no coge de uno existente
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
@@ -228,8 +230,8 @@ int main(int argc, char** argv) {
                     cwd();
             }}
             else if(strcmp(args[0],"allocate")==0){
-                if (counter < 1) {
-                    cwd();
+                if (counter == 1) {
+                    ImprimirMemoriaLista(memorial);
                 } else {
                         if(strcmp(args[1],"-malloc")==0){
                             tam = atoi(args[2]);
@@ -254,7 +256,7 @@ int main(int argc, char** argv) {
                         printf("No se pueden asignar 0 bytes\n");
                     }}
                         else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
-                            do_AllocateMmap(args,memorial);
+                            do_AllocateMmap(args,memorial,&abiertos);
                         }else if(strcmp(args[1],"-shared")==0){
                             do_AllocateShared (args,memorial);
                         }else if(strcmp(args[1],"-createshared")==0){
@@ -262,6 +264,9 @@ int main(int argc, char** argv) {
                         }
                 }
             }else if (strcmp(args[0],"deallocate")==0){
+                if (counter == 1){
+                    ImprimirMemoriaLista(memorial);
+                }
                 if(counter>2){
                     if(strcmp(args[1],"-malloc")==0){
                             tam = atoi(args[2]);
@@ -275,7 +280,7 @@ int main(int argc, char** argv) {
                             }
                         }
                         else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
-                            printf("Mmap dealloc\n");
+                            DetachMmap(args[2],&memorial,&abiertos);
                         }else if(strcmp(args[1],"-shared")==0){
                             DetachSharedMemory(atoi(args[2]),&memorial);
                         }else if(strcmp(args[1],"-delkey")==0){
@@ -390,7 +395,7 @@ int main(int argc, char** argv) {
                 free(input); // Al salir liberamos memoria
                 destruye(&abiertos);
                 destruyehist(&historial);
-                LiberarMemoriaLista(&memorial);
+                //LiberarMemoriaLista(&memorial);
                 destruyemem(&memorial);
                 printf("Saliendo del shell...\n");
                 break;

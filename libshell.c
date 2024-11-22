@@ -1091,25 +1091,25 @@ ssize_t WriteFichero2(int df,char *file, void *p, size_t cont){
 }
 
 
-void DetachSharedMemory(void *p, key_t clave, MEM *shared) {
+void DetachSharedMemory(key_t clave, MEM *shared) {
     MEMALLOC nodo;
     TNODOMEM n;
     for(n = primeromem(*shared);n!=finmem(*shared);n=siguientemem(*shared,n)){
         recuperamem(*shared,n,&nodo);
-        if(nodo.pointer == n){
+        if(nodo.clave == clave){
             break;
         }
     }
-    if (nodo.pointer != p) {
+    if (nodo.clave != clave) {
         printf("El bloque de memoria compartida no está en la lista.\n");
         return;
     }
-    if (shmdt(p) == -1) {
+    if (shmdt(nodo.pointer) == -1) {
         perror("Error al desvincular la memoria compartida");
         return;
     }
-    printf("Memoria compartida desvinculada: %p\n", p);
-    suprimemem(shared, p);
+    printf("Memoria compartida desvinculada: %p\n", nodo.pointer);
+    suprimemem(shared, n);
 }
 
 void DetachSharedMemoryByKey(key_t cl, MEM *shared) {
@@ -1135,30 +1135,32 @@ void DetachSharedMemoryByKey(key_t cl, MEM *shared) {
     suprimemem(shared, p); 
 }
 
-void DetachMmap(char *file,MEM *memorial){
-    int df;
-    MEMALLOC nodo;
-    TNODOMEM p;
-    for(p = primeromem(*memorial);p!=finmem(*memorial);p=siguientemem(*memorial,p)){
-        recuperamem(*memorial,p,&nodo);
-        if(strcmp(nodo.file,file)==0){
+void DetachMmap(char *file,MEM *memorial,ABIERTOLISTA *abiertos){
+    MEMALLOC m;
+    TNODOMEM nodo;
+    FILES f;
+    for(nodo = primeromem(*memorial); nodo!=finmem(*memorial); nodo=siguientemem(*memorial,nodo)){
+        recuperamem(*memorial,nodo,&m);//Por alguna razon m.file sale "p" siempre
+        if(strcmp(m.file,file)==0){
             break;
         }
     }
-    if(p == finmem(*memorial)){
-        printf("No se ha mapeado el fichero especificado\n");
-        return;
+    if(nodo == finmem(*memorial)){
+        printf("No se ha mapeado este fichero\n");
     }
-    df = open(file,O_RDWR);
-    if (df == -1) {
-        perror("Error al abrir el archivo");
-        return;
-    }
-    if(munmap(nodo.pointer,sizeof(file))==-1){
+    //df = open(m.file,O_RDWR);
+    if(munmap(m.pointer,sizeof(file))==-1){
         perror("Error al desmapear Memoria\n");
         return;
     }
-    close(df);
-    suprimemem(memorial,p);
-    printf("Memorial Desmapeada Correctamente\n");
+    close(m.df);
+    for(TNODOLISTA n = primero(*abiertos); n != fin(*abiertos);n=siguiente(*abiertos,n)){
+        recupera(*abiertos,n,&f);
+        if(f.filedes == m.df){
+            suprime(abiertos,n);
+            break;
+        }
+    }
+    suprimemem(memorial,nodo);
+    printf("Desmapeada Correctamente\n");
 }

@@ -17,6 +17,7 @@
 #include <pwd.h> 
 #include <grp.h>
 #include <errno.h>
+#include "abiertolista.h"
 #include "memlist.h"
 
 #define TAMANO 2048
@@ -39,7 +40,7 @@ void ImprimirMemoriaLista(MEM shared){
     for(TNODOMEM d = primeromem(shared);d != finmem(shared);d = siguientemem(shared,d)){
         recuperamem(shared,d,&m);
         if(m.tipo == MAPPED){
-            printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s  %s (descriptor %d)\n",m.pointer,
+            printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s (Mapeo de %s, descriptor %d)\n",m.pointer,
                                  m.size,m.time.tm_mday,m.time.tm_mon+1,m.time.tm_hour,m.time.tm_min,getAllocationTypeName(m.tipo),m.file,m.df);
         }if(m.tipo == SHARED){
             printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s (key %d)\n",m.pointer,
@@ -50,8 +51,6 @@ void ImprimirMemoriaLista(MEM shared){
                                  m.size,m.time.tm_mday,m.time.tm_mon+1,m.time.tm_hour,m.time.tm_min,getAllocationTypeName(m.tipo));
         }
     }
-    }else{
-        printf("No hay memoria de este tipo\n");
     }
 }
 
@@ -177,14 +176,16 @@ void do_AllocateShared (char *tr[], MEM shared)
 		printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
 }
 
-void * MapearFichero (char * fichero, int protection,MEM *list)
+void * MapearFichero (char * fichero, int protection,MEM *list,ABIERTOLISTA *abiertos)
 {
     int df, map=MAP_PRIVATE,modo=O_RDONLY;
     struct stat s;
+    char buffer[256];
     struct tm *now;
     time_t t;
     void *p;
     MEMALLOC m;
+    FILES arch;
 
     if (protection&PROT_WRITE)
           modo=O_RDWR;
@@ -194,7 +195,8 @@ void * MapearFichero (char * fichero, int protection,MEM *list)
            return NULL;
     m.pointer = p;
     m.df = df;
-    m.file = fichero;
+    strncpy(buffer,fichero,256);
+    strcpy(m.file,buffer);
     m.size = s.st_size;
     m.tipo = MAPPED;
     t = time(NULL);
@@ -203,10 +205,14 @@ void * MapearFichero (char * fichero, int protection,MEM *list)
          m.time = *now; 
    }
     insertamem(list,finmem(*list),m);
+    strcpy(arch.filename,buffer);
+    arch.filedes = df;
+    arch.mode = O_RDWR;
+    inserta(abiertos,fin(*abiertos),arch);
     return p;
 }
 
-void do_AllocateMmap(char *arg[],MEM mmap)
+void do_AllocateMmap(char *arg[],MEM mmap,ABIERTOLISTA *abiertos)//Anadir lista de abiertos
 { 
      char *perm;
      void *p;
@@ -222,7 +228,7 @@ void do_AllocateMmap(char *arg[],MEM mmap)
             if (strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
             if (strchr(perm,'x')!=NULL) protection|=PROT_EXEC;
      }
-     if ((p=MapearFichero(arg[2],protection,&mmap))==NULL)
+     if ((p=MapearFichero(arg[2],protection,&mmap,abiertos))==NULL)
              perror ("Imposible mapear fichero");
      else
              printf ("fichero %s mapeado en %p\n", arg[2], p);
