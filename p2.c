@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <pwd.h>
 #include "abiertolista.h"
 #include "listahist.h"
 #include "memlist.h"
@@ -37,6 +38,8 @@ int main(int argc, char** argv) {
     size_t cont;
     time_t t;
     struct tm *now;
+    uid_t  uid;
+    struct passwd *p;
     int counter, control,i,tam;
     void *del;
     char *args[20];
@@ -389,13 +392,26 @@ int main(int argc, char** argv) {
                 }
             }
             }
+            else if (!strcmp(args[0],"getuid")){
+                uid = getuid();
+                if ((p = getpwuid(uid)) == NULL) {
+                    perror("getpwuid() error");
+                }
+                printf("Credencial Real: %s (%d)\n", p->pw_name,uid);
+                
+                uid = geteuid();
+                if ((p = getpwuid(uid)) == NULL) {
+                    perror("getpwuid() error");
+                }
+                printf("Credencial Efectivo: %s (%d)\n", p->pw_name,uid);
+            }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell
                 free(input); // Al salir liberamos memoria
                 destruye(&abiertos);
                 destruyehist(&historial);
-                //LiberarMemoriaLista(&memorial);
+                LiberarMemoriaLista(&memorial);
                 destruyemem(&memorial);
                 printf("Saliendo del shell...\n");
                 break;
