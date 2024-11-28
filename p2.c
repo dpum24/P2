@@ -404,6 +404,13 @@ int main(int argc, char** argv) {
                     perror("getpwuid() error");
                 }
                 printf("Credencial Efectivo: %s (%d)\n", p->pw_name,uid);
+            }else if(!strcmp(args[0],"setuid")){
+                uid = (uid_t)atoi(args[1]);
+                if(setuid(uid)< 0){
+                    perror("setuid error");
+                }else{
+                    printf("Credencial cambiado exitosamente a %d\n",uid);
+                }
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
