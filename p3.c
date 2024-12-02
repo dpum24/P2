@@ -28,7 +28,9 @@ int glob,globini=10;
 float glob2,globini2=1.4;
 char glob3,globini3='c';
 
-int main(int argc, char** argv) {
+extern char **environ;
+
+int main(int argc, char* argv[], char* envp[]) {
     COMMAND c;
     FILES f;
     MEMALLOC m;
@@ -410,6 +412,16 @@ int main(int argc, char** argv) {
                     perror("setuid error");
                 }else{
                     printf("Credencial cambiado exitosamente a %d\n",uid);
+                }
+            }else if(!strcmp(args[0],"showvar")){
+                Cmd_showvar(argc-1,&argv[1],envp);
+            }else if(!strcmp(args[0],"changevar")){
+                if(counter == 4){
+                    if(!strcmp(args[1],"-e")){
+                        CambiarVariable(args[2],args[3],environ);
+                    }if(!strcmp(args[0],"-a")){
+                        CambiarVariable(args[2],args[3],envp);
+                    }
                 }
             }
             else if (strcmp(args[0], "cwd") == 0) {
