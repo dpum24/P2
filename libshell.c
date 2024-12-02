@@ -19,6 +19,11 @@
 #include "abiertolista.h"
 #include "memlist.h"
 #include "listahist.h"
+#include <sys/ipc.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/mman.h>
+
 
 void authors(){
     printf("Rubén Sayáns Fortes, ruben.sayans@udc.es\nDiego Emilio Pumarol Guerrero, diego.pumarol@udc.es\n");
@@ -491,7 +496,7 @@ char* ConvierteModo(mode_t m)
     return permisos;
 }
 
-void listdir(char *path,int mode) {
+void listdir(char *path, int mode) {
     struct dirent *ent;
     struct stat strat;
     DIR *dir;
@@ -507,58 +512,70 @@ void listdir(char *path,int mode) {
         return;
     }
 
-        // Recorre las entradas del directorio
-        while ((ent = readdir(dir)) != NULL) {
-            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {//Ignoramos . y ..
-                continue;
-            }
-            snprintf(ruta_completa, sizeof(ruta_completa), "%s/%s", path, ent->d_name);//En ruta_completa tiene toda la ruta, es decir directorio/directorio/archivo
-            if (stat(ruta_completa, &strat) == -1) {
-                perror("Error al obtener información del archivo");
-                continue;
-            }
-            if(mode==0){//Listdir normal
+    // Recorre las entradas del directorio
+    while ((ent = readdir(dir)) != NULL) {
+        // Ignoramos las entradas "." y ".."
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+            continue;
+        }
+
+        // Construimos la ruta completa de cada archivo/directorio
+        snprintf(ruta_completa, sizeof(ruta_completa), "%s/%s", path, ent->d_name);
+
+        if (stat(ruta_completa, &strat) == -1) {
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        // Modo 0: Listado básico
+        if (mode == 0) {
             printf("%lu\t%s\n", strat.st_size, ent->d_name);
-            }
-            if(mode == 1){//Para -acc, demuestra tiempos de acceso
+        }
+
+        // Modo 1: Mostrar tiempos de acceso
+        else if (mode == 1) {
             tm_info = localtime(&strat.st_atime);
             strftime(buffer, sizeof(buffer), "%d/%m/%Y %H:%M:%S", tm_info);
             printf("%s\tÚltimo acceso: %s\n", ent->d_name, buffer);
-            }
-            if(mode==2){//Para -link, hace normal pero si hay link simbolico demuestra a lo que apunta
+        }
+
+        // Modo 2: Mostrar enlaces simbólicos
+        else if (mode == 2) {
             if (S_ISLNK(strat.st_mode)) {
                 ssize_t len = readlink(ruta_completa, path, sizeof(path) - 1);
-                    if (len == -1) {
-                        perror("Error al leer el enlace simbolico");
-                    }else {
-                            path[len] = '\0';
-                            printf("El enlace simbolico %s ----> %s\n", ent->d_name, path);
-                        }
-                }else{
-                    printf("%lu\t%s\n", strat.st_size, ent->d_name);
+                if (len == -1) {
+                    perror("Error al leer el enlace simbólico");
+                } else {
+                    path[len] = '\0';
+                    printf("El enlace simbólico %s ----> %s\n", ent->d_name, path);
                 }
-            }if(mode==3){//Para -long
-                pwd = getpwuid(strat.st_uid);
-                grp = getgrgid(strat.st_gid);
-                tm_info = localtime(&strat.st_atime);
-                strftime(buffer, sizeof(buffer), "%d/%m/%Y %H:%M:%S", tm_info);
-                printf("%s %lu  %lu %s  %s  %s  %lu  %s\n", buffer, strat.st_nlink, strat.st_ino, grp->gr_name,pwd->pw_name,
-                   ConvierteModo(strat.st_mode),             
-                   strat.st_size,                
-                   ent->d_name);
-            }if (mode == 4) {  // Para -hid, lista archivos ocultos
-                printf("%lu\t.\n", strat.st_size);
-                printf("%lu\t..\n", strat.st_size);
-
-                // Itera sobre los archivos en el directorio
-                while ((ent = readdir(dir)) != NULL) {
-                    if (ent->d_name[0] == '.' && strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
-                        printf("%lu\t%s\n", strat.st_size, ent->d_name);
-                    }
-                }
+            } else {
+                printf("%lu\t%s\n", strat.st_size, ent->d_name);
             }
-            closedir(dir);
+        }
+
+        // Modo 3: Listado detallado (información completa)
+        else if (mode == 3) {
+            pwd = getpwuid(strat.st_uid);
+            grp = getgrgid(strat.st_gid);
+            tm_info = localtime(&strat.st_atime);
+            strftime(buffer, sizeof(buffer), "%d/%m/%Y %H:%M:%S", tm_info);
+            printf("%s %lu %lu %s %s %s %lu %s\n", buffer, strat.st_nlink, strat.st_ino,
+                   grp ? grp->gr_name : "unknown", pwd ? pwd->pw_name : "unknown",
+                   ConvierteModo(strat.st_mode), strat.st_size, ent->d_name);
+        }
+
+        // Modo 4: Listar archivos ocultos (nombres que comienzan con '.')
+        else if (mode == 4) {
+            if (ent->d_name[0] == '.' && strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
+                printf("%lu\t%s\n", strat.st_size, ent->d_name);
+            }
+        }
+    }
+
+    closedir(dir);
 }
+
 
 void longlistdirrec(char* path){
     struct dirent *ent;
@@ -998,6 +1015,25 @@ void Cmd_memdump(char *args[]) {
     }
     printf("\n");
 }
+ssize_t LeerFichero2 (int df,char *file,void *p, size_t cont)//
+{
+   struct stat s;
+   ssize_t  n;  
+   int aux;
+   if (stat (file,&s)==-1){
+	return -1;
+    }
+   if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
+	cont=s.st_size;
+   if ((n=read(df,p,cont))==-1){
+	aux=errno;
+	close(df);
+	errno=aux;
+	return -1;
+   }
+   close (df);
+   return n;
+}
 ssize_t WriteFichero(char *f, void *p, size_t cont){
     struct stat s;
     ssize_t  n;  
@@ -1033,4 +1069,98 @@ void Cmd_writefile(char *args[]){
 	perror ("Imposible leer fichero");
    else
 	printf ("Escritos %lld bytes de %s en %p\n",(long long) n,args[1],p);
+}
+
+ssize_t WriteFichero2(int df,char *file, void *p, size_t cont){
+    struct stat s;
+    ssize_t  n;  
+    int aux;
+    if (stat (file,&s)==-1){
+	return -1;
+    } 
+    if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
+	cont=s.st_size;
+    if ((n=write(df,p,cont))==-1){
+	aux=errno;
+	close(df);
+	errno=aux;
+	return -1;
+    }
+    close (df);
+    return n;
+}
+
+
+void DetachSharedMemory(key_t clave, MEM *shared) {
+    MEMALLOC nodo;
+    TNODOMEM n;
+    for(n = primeromem(*shared);n!=finmem(*shared);n=siguientemem(*shared,n)){
+        recuperamem(*shared,n,&nodo);
+        if(nodo.clave == clave){
+            break;
+        }
+    }
+    if (nodo.clave != clave) {
+        printf("El bloque de memoria compartida no está en la lista.\n");
+        return;
+    }
+    if (shmdt(nodo.pointer) == -1) {
+        perror("Error al desvincular la memoria compartida");
+        return;
+    }
+    printf("Memoria compartida desvinculada: %p\n", nodo.pointer);
+    suprimemem(shared, n);
+}
+
+void DetachSharedMemoryByKey(key_t cl, MEM *shared) {
+    MEMALLOC nodo;
+    TNODOMEM p;
+    for(p = primeromem(*shared);p!=finmem(*shared);p=siguientemem(*shared,p)){
+        recuperamem(*shared,p,&nodo);
+        if(nodo.pointer == p){
+            break;
+        }
+    }
+    if(p == finmem(*shared)){
+        printf("No se ha mapeado el fichero\n");
+        return;
+    }
+    if (shmdt(nodo.pointer) == -1) {
+        perror("Error al desvincular la memoria compartida");
+        return;
+    }
+
+    printf("Memoria compartida desvinculada: clave %lu, dirección %p\n",
+           (unsigned long)cl, nodo.pointer);
+    suprimemem(shared, p); 
+}
+
+void DetachMmap(char *file,MEM *memorial,ABIERTOLISTA *abiertos){
+    MEMALLOC m;
+    TNODOMEM nodo;
+    FILES f;
+    for(nodo = primeromem(*memorial); nodo!=finmem(*memorial); nodo=siguientemem(*memorial,nodo)){
+        recuperamem(*memorial,nodo,&m);//Por alguna razon m.file sale "p" siempre
+        if(strcmp(m.file,file)==0){
+            break;
+        }
+    }
+    if(nodo == finmem(*memorial)){
+        printf("No se ha mapeado este fichero\n");
+    }
+    //df = open(m.file,O_RDWR);
+    if(munmap(m.pointer,sizeof(file))==-1){
+        perror("Error al desmapear Memoria\n");
+        return;
+    }
+    close(m.df);
+    for(TNODOLISTA n = primero(*abiertos); n != fin(*abiertos);n=siguiente(*abiertos,n)){
+        recupera(*abiertos,n,&f);
+        if(f.filedes == m.df){
+            suprime(abiertos,n);
+            break;
+        }
+    }
+    suprimemem(memorial,nodo);
+    printf("Desmapeada Correctamente\n");
 }

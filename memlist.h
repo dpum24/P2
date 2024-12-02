@@ -8,9 +8,10 @@ typedef struct MEMALLOC{
     void *pointer;
     size_t size;
     AllocationType tipo;
-    char *file;
+    char file[256];
     int df;
     __key_t clave;
+    struct tm time;
 }MEMALLOC;
 
 

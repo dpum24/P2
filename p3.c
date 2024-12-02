@@ -11,32 +11,43 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <pwd.h>
 #include "abiertolista.h"
 #include "listahist.h"
 #include "memlist.h"
 #include "ayudaP2.h"
 #include "libshell.h"
+#include "ayudaP3.h"
 
 //falta listfile
-//-hid en todos
-//En read, LeerFichero repite el open, que en teoria esta hecho
-//Allocate listas
-//Deallocate -mmap y -shared
-//writefile y write
+//memory funcs not supported for repeat_cmd()
+//En writefile, crea un fichero nuevo, no se le pone uno antiguo
 
-//valgrind --leak-check=yes ./p1
+
+//showvar no coge como argumentos las variables
+//setuid no tiene la opcion -l (login)
+//Falta la lista de Ejecutables (IMPORTANTE)
+//Comprobar changevar
+
+//valgrind --leak-check=yes ./p2
 int glob,globini=10;
 float glob2,globini2=1.4;
 char glob3,globini3='c';
 
-int main(int argc, char** argv) {
+extern char **environ;
+
+int main(int argc, char* argv[], char* envp[]) {
     COMMAND c;
     FILES f;
     MEMALLOC m;
     static float hola,adios,hasta;
     static int static1=0,static2=1,static3=2;
     pid_t pid;
-    size_t cont, nbytes;
+    size_t cont;
+    time_t t;
+    struct tm *now;
+    uid_t  uid;
+    struct passwd *p;
     int counter, control,i,tam;
     void *del;
     char *args[20];
@@ -136,7 +147,7 @@ int main(int argc, char** argv) {
                 } else {
                     if (counter == 3) {
                         if (strcmp(args[1], "-hid") == 0) {
-                            listdir(args[2],0);
+                            listdir(args[2],4);
                         } else if (strcmp(args[1], "-acc") == 0) { // Tiempo de acceso
                            listdir(args[2],1);
                         } else if (strcmp(args[1], "-link") == 0) { // Si es enlace simbolico, mostrar directorio a que apunta
@@ -230,8 +241,8 @@ int main(int argc, char** argv) {
                     cwd();
             }}
             else if(strcmp(args[0],"allocate")==0){
-                if (counter < 1) {
-                    cwd();
+                if (counter == 1) {
+                    ImprimirMemoriaLista(memorial);
                 } else {
                         if(strcmp(args[1],"-malloc")==0){
                             tam = atoi(args[2]);
@@ -241,6 +252,11 @@ int main(int argc, char** argv) {
                             m.pointer = mem;
                             m.size = tam;
                             m.tipo = MALLOC;
+                            t = time(NULL);
+                            now = localtime(&t);
+                            if (now != NULL) {
+                                m.time = *now; 
+                        }
                             insertamem(&memorial,finmem(memorial),m);//Insertar en la lista de memoria
                             printf("Memoria malloc asignada en: %p (%d bytes)\n", mem, tam);
                         }
@@ -251,17 +267,17 @@ int main(int argc, char** argv) {
                         printf("No se pueden asignar 0 bytes\n");
                     }}
                         else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
-                            do_AllocateMmap(args,memorial);
+                            do_AllocateMmap(args,memorial,&abiertos);
                         }else if(strcmp(args[1],"-shared")==0){
                             do_AllocateShared (args,memorial);
                         }else if(strcmp(args[1],"-createshared")==0){
                             do_AllocateCreateshared(args,memorial);
                         }
-                    else{
-                        cwd();
-                    }
                 }
             }else if (strcmp(args[0],"deallocate")==0){
+                if (counter == 1){
+                    ImprimirMemoriaLista(memorial);
+                }
                 if(counter>2){
                     if(strcmp(args[1],"-malloc")==0){
                             tam = atoi(args[2]);
@@ -274,14 +290,10 @@ int main(int argc, char** argv) {
                                 }
                             }
                         }
-                            else{
-                            printf("Error al asignar memoria\n");
-                        }
-                    }
                         else if(strcmp(args[1],"-mmap")==0){//Para los siguientes, los argumentos de funciones originales pueden estar mal. Falta tambien listas
-                            printf("Mmap dealloc\n");
+                            DetachMmap(args[2],&memorial,&abiertos);
                         }else if(strcmp(args[1],"-shared")==0){
-                            printf("Shared Dealloc\n");
+                            DetachSharedMemory(atoi(args[2]),&memorial);
                         }else if(strcmp(args[1],"-delkey")==0){
                             do_DeallocateDelkey(args);
                         }
@@ -298,10 +310,9 @@ int main(int argc, char** argv) {
                                 if(nodomem==finmem(memorial)){
                                 printf("Bloque de memoria no asignado\n");
                             }
-                        }
-                            
-                        }
+                            }}
                 }
+            }
             }
             else if(strcmp(args[0],"memfill")==0){
                 if(counter == 4){
@@ -329,8 +340,9 @@ int main(int argc, char** argv) {
                         printf("Variables (N.I)globales %p %p %p\n",&glob,&glob2,&glob3);
                         printf("Variables staticas %p %p %p\n",&static1,&static2,&static3);
                         printf("Var (N.I.)staticas %p %p %p\n",&hola,&adios,&hasta);
+                        ImprimirMemoriaLista(memorial);
                     }if(strcmp(args[1],"-blocks")==0){
-                        
+                        ImprimirMemoriaLista(memorial);
                     }
                     if(strcmp(args[1],"-pmap")==0){
                         Do_pmap();
@@ -352,7 +364,7 @@ int main(int argc, char** argv) {
                             if (args[3]!=NULL){
 	                        cont=(size_t) atoll(args[3]);
                             }
-                            if ((tam=LeerFichero(f.filename,del,cont))==-1){
+                            if ((tam=LeerFichero2(f.filedes,f.filename,del,cont))==-1){
                                 perror ("Imposible leer fichero");
                             }
                         else{
@@ -367,16 +379,70 @@ int main(int argc, char** argv) {
                 Cmd_memdump(args);
             }else if (strcmp(args[0],"writefile")==0){
                 Cmd_writefile(args);
+            }else if (strcmp(args[0],"write")==0){
+                if(counter==4){
+                    for(TNODOLISTA a = primero(abiertos);a!=fin(abiertos);a=siguiente(abiertos,a)){
+                        recupera(abiertos,a,&f);
+                        if(f.filedes == atoi(args[1])){
+                            del=cadtop(args[2]);  /*convertimos de cadena a puntero*/
+                            if (args[3]!=NULL){
+	                        cont=(size_t) atoll(args[3]);
+                            }
+                            if ((tam=WriteFichero2(f.filedes,f.filename,del,cont))==-1){
+                                perror ("Imposible leer fichero");
+                            }
+                        else{
+	                    printf ("leidos %lld bytes de %s en %p\n",(long long) tam,f.filename,del);
+                        }
+                        break;
+                        }
+                    
+                }
+            }
+            }
+            else if (!strcmp(args[0],"getuid")){
+                uid = getuid();
+                if ((p = getpwuid(uid)) == NULL) {
+                    perror("getpwuid() error");
+                }
+                printf("Credencial Real: %s (%d)\n", p->pw_name,uid);
+                
+                uid = geteuid();
+                if ((p = getpwuid(uid)) == NULL) {
+                    perror("getpwuid() error");
+                }
+                printf("Credencial Efectivo: %s (%d)\n", p->pw_name,uid);
+            }else if(!strcmp(args[0],"setuid")){
+                uid = (uid_t)atoi(args[1]);
+                if(setuid(uid)< 0){
+                    perror("setuid error");
+                }else{
+                    printf("Credencial cambiado exitosamente a %d\n",uid);
+                }
+            }else if(!strcmp(args[0],"showvar")){
+                Cmd_showvar(argc-1,&argv[1],envp);
+            }else if(!strcmp(args[0],"changevar")){
+                if(counter == 4){
+                    if(!strcmp(args[1],"-e")){
+                        CambiarVariable(args[2],args[3],environ);
+                    }if(!strcmp(args[0],"-a")){
+                        CambiarVariable(args[2],args[3],envp);
+                    }
+                }
+            }else if(!strcmp(args[0],"exec")){
+                ExecWithPriority(args);
+            }else if (!strcmp(args[0],"execpri")){
+                ExecWithPriority(args);
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell
-                printf("Saliendo del shell...\n");
                 free(input); // Al salir liberamos memoria
                 destruye(&abiertos);
                 destruyehist(&historial);
                 LiberarMemoriaLista(&memorial);
                 destruyemem(&memorial);
+                printf("Saliendo del shell...\n");
                 break;
             } else {
                 printf("Comando no reconocido: %s\n", args[0]);

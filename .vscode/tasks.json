@@ -7,7 +7,7 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "p2.c", "libshell.c","listahist.c", "abiertolista.c","memlist.c", "ayudaP2.c",
+                "p3.c", "libshell.c","listahist.c", "abiertolista.c","memlist.c", "ayudaP2.c", "ayudaP3.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],

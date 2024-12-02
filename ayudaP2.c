@@ -17,22 +17,40 @@
 #include <pwd.h> 
 #include <grp.h>
 #include <errno.h>
+#include "abiertolista.h"
 #include "memlist.h"
 
 #define TAMANO 2048
 
+const char* getAllocationTypeName(AllocationType type) {
+    switch (type) {
+        case MALLOC: return "MALLOC";
+        case SHARED: return "SHARED";
+        case MAPPED: return "MAPPED";
+        default: return "UNKNOWN";
+    }
+}
+
 void ImprimirMemoriaLista(MEM shared){
     MEMALLOC m;
+    pid_t pid;
+    pid = getpid();
+    printf("******Lista de bloques asignados para el proceso %d\n",pid);
     if(esVaciamem(shared)!=1){
     for(TNODOMEM d = primeromem(shared);d != finmem(shared);d = siguientemem(shared,d)){
         recuperamem(shared,d,&m);
-        printf("Asignado en %p: %lu bytes\n",m.pointer,m.size);
         if(m.tipo == MAPPED){
-          printf("Fichero %s File descriptor %d\n",m.file,m.df);
+            printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s (Mapeo de %s, descriptor %d)\n",m.pointer,
+                                 m.size,m.time.tm_mday,m.time.tm_mon+1,m.time.tm_hour,m.time.tm_min,getAllocationTypeName(m.tipo),m.file,m.df);
+        }if(m.tipo == SHARED){
+            printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s (key %d)\n",m.pointer,
+                                 m.size,m.time.tm_mday,m.time.tm_mon+1,m.time.tm_hour,m.time.tm_min,getAllocationTypeName(m.tipo),m.clave);
+        }
+        if(m.tipo == MALLOC){
+        printf("\t %p \t %lu \t %02d/%02d \t %02d:%02d \t %s \n",m.pointer,
+                                 m.size,m.time.tm_mday,m.time.tm_mon+1,m.time.tm_hour,m.time.tm_min,getAllocationTypeName(m.tipo));
         }
     }
-    }else{
-        printf("No hay memoria de este tipo\n");
     }
 }
 
@@ -43,6 +61,16 @@ void LiberarMemoriaLista(MEM *lista){
         recuperamem(lista,d,&m);
         if(m.tipo == MALLOC){
          free(m.pointer);
+        }
+        if(m.tipo == SHARED){
+         if (shmdt(m.pointer) == -1) {
+            perror("Error al desvincular memoria compartida");
+        }
+        if(m.tipo == MAPPED){
+         if (munmap(m.pointer,m.size) == -1) {
+            perror("Error al desmapear memoria");
+        }
+        }
         }
     }
    }else{
@@ -76,6 +104,8 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam,MEM *shared)
     void * p;
     int aux,id,flags=0777;
     struct shmid_ds s;
+    time_t t;
+    struct tm *now;
     MEMALLOC m;
     if (tam)     /*tam distito de 0 indica crear */
         flags=flags | IPC_CREAT | IPC_EXCL; /*cuando no es crear pasamos de tamano 0*/
@@ -95,6 +125,11 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam,MEM *shared)
     m.tipo = SHARED;
     m.clave = clave;
     m.size = s.shm_segsz;
+    t = time(NULL);
+    now = localtime(&t);
+    if (now != NULL) {
+       m.time = *now; 
+   }
     insertamem(shared,finmem(*shared),m);
  /* Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave); */
     return (p);
@@ -141,12 +176,16 @@ void do_AllocateShared (char *tr[], MEM shared)
 		printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
 }
 
-void * MapearFichero (char * fichero, int protection,MEM *list)
+void * MapearFichero (char * fichero, int protection,MEM *list,ABIERTOLISTA *abiertos)
 {
     int df, map=MAP_PRIVATE,modo=O_RDONLY;
     struct stat s;
+    char buffer[256];
+    struct tm *now;
+    time_t t;
     void *p;
     MEMALLOC m;
+    FILES arch;
 
     if (protection&PROT_WRITE)
           modo=O_RDWR;
@@ -156,14 +195,24 @@ void * MapearFichero (char * fichero, int protection,MEM *list)
            return NULL;
     m.pointer = p;
     m.df = df;
-    m.file = fichero;
+    strncpy(buffer,fichero,256);
+    strcpy(m.file,buffer);
     m.size = s.st_size;
     m.tipo = MAPPED;
+    t = time(NULL);
+    now = localtime(&t);
+    if (now != NULL) {
+         m.time = *now; 
+   }
     insertamem(list,finmem(*list),m);
+    strcpy(arch.filename,buffer);
+    arch.filedes = df;
+    arch.mode = O_RDWR;
+    inserta(abiertos,fin(*abiertos),arch);
     return p;
 }
 
-void do_AllocateMmap(char *arg[],MEM mmap)
+void do_AllocateMmap(char *arg[],MEM mmap,ABIERTOLISTA *abiertos)//Anadir lista de abiertos
 { 
      char *perm;
      void *p;
@@ -179,7 +228,7 @@ void do_AllocateMmap(char *arg[],MEM mmap)
             if (strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
             if (strchr(perm,'x')!=NULL) protection|=PROT_EXEC;
      }
-     if ((p=MapearFichero(arg[2],protection,&mmap))==NULL)
+     if ((p=MapearFichero(arg[2],protection,&mmap,abiertos))==NULL)
              perror ("Imposible mapear fichero");
      else
              printf ("fichero %s mapeado en %p\n", arg[2], p);
@@ -189,7 +238,7 @@ void do_DeallocateDelkey (char *args[])
 {
    key_t clave;
    int id;
-   char *key=args[1];
+   char *key=args[2];
 
    if (key==NULL || (clave=(key_t) strtoul(key,NULL,10))==IPC_PRIVATE){
         printf ("      delkey necesita clave_valida\n");
