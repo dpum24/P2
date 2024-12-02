@@ -17,11 +17,17 @@
 #include "memlist.h"
 #include "ayudaP2.h"
 #include "libshell.h"
+#include "ayudaP3.h"
 
 //falta listfile
 //memory funcs not supported for repeat_cmd()
 //En writefile, crea un fichero nuevo, no se le pone uno antiguo
-//readfile crea un archivo nuevo, no coge de uno existente
+
+
+//showvar no coge como argumentos las variables
+//setuid no tiene la opcion -l (login)
+//Falta la lista de Ejecutables (IMPORTANTE)
+//Comprobar changevar
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
@@ -423,6 +429,10 @@ int main(int argc, char* argv[], char* envp[]) {
                         CambiarVariable(args[2],args[3],envp);
                     }
                 }
+            }else if(!strcmp(args[0],"exec")){
+                ExecWithPriority(args);
+            }else if (!strcmp(args[0],"execpri")){
+                ExecWithPriority(args);
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();

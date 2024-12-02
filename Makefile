@@ -14,13 +14,13 @@ HEADER_FILES_DIR = .
 INCLUDES = -I $(HEADER_FILES_DIR)
 
 #nombre del ejecutable o archivo de salida
-OUTPUT = p2
+OUTPUT = p3
 
 #ficheros .h.  Si hay varios, se precede cada uno con $(HEADER_FILES_DIR)/
 HEADERS = $(HEADER_FILES_DIR)/abiertolista.h listahist.h memlist.h ayudaP2.h libshell.h 
 
 #FUENTES: todos los archivos .c necesarios
-SRCS = p2.c abiertolista.c listahist.c memlist.c ayudaP2.c libshell.c 
+SRCS = p3.c abiertolista.c listahist.c memlist.c ayudaP2.c libshell.c 
 
 #ficheros .o: todos los .o con un analogo .c en SRCS
 OBJS = $(SRCS:.c=.o)
