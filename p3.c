@@ -28,6 +28,8 @@
 //setuid no tiene la opcion -l (login)
 //Falta la lista de Ejecutables (IMPORTANTE)
 //Comprobar changevar
+//search commando, directorios en los que la shell busca los comandos
+//search -path importa lo que hay en PATH --clear
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
@@ -412,27 +414,8 @@ int main(int argc, char* argv[], char* envp[]) {
                     perror("getpwuid() error");
                 }
                 printf("Credencial Efectivo: %s (%d)\n", p->pw_name,uid);
-            }else if(!strcmp(args[0],"setuid")){
-                uid = (uid_t)atoi(args[1]);
-                if(setuid(uid)< 0){
-                    perror("setuid error");
-                }else{
-                    printf("Credencial cambiado exitosamente a %d\n",uid);
-                }
-            }else if(!strcmp(args[0],"showvar")){
-                Cmd_showvar(argc-1,&argv[1],envp);
-            }else if(!strcmp(args[0],"changevar")){
-                if(counter == 4){
-                    if(!strcmp(args[1],"-e")){
-                        CambiarVariable(args[2],args[3],environ);
-                    }if(!strcmp(args[0],"-a")){
-                        CambiarVariable(args[2],args[3],envp);
-                    }
-                }
-            }else if(!strcmp(args[0],"exec")){
-                ExecWithPriority(args);
-            }else if (!strcmp(args[0],"execpri")){
-                ExecWithPriority(args);
+            }else if (!strcmp(args[0],"fork")){
+                Cmd_fork(args);
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
