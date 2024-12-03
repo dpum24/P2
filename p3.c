@@ -17,19 +17,16 @@
 #include "memlist.h"
 #include "ayudaP2.h"
 #include "libshell.h"
+#include "searchlist.h"
 #include "ayudaP3.h"
 
 //falta listfile
 //memory funcs not supported for repeat_cmd()
 //En writefile, crea un fichero nuevo, no se le pone uno antiguo
 
-
-//showvar no coge como argumentos las variables
-//setuid no tiene la opcion -l (login)
-//Falta la lista de Ejecutables (IMPORTANTE)
-//Comprobar changevar
-//search commando, directorios en los que la shell busca los comandos
-//search -path importa lo que hay en PATH --clear
+//Modificar argumentos de Execpve
+//search -path que anada a la lista
+//Crear la lista de procesos en segundo plano
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
@@ -54,17 +51,22 @@ int main(int argc, char* argv[], char* envp[]) {
     void *del;
     char *args[20];
     char *input = malloc(sizeof(char) * 50);
+    char *path_var, *pathconfi, *otromas;
     void *mem;
+    DIR dir;
     ABIERTOLISTA abiertos;
     HIST historial;
     MEM memorial;
+    SEARCH dirs;
     
     crea(&abiertos);
     creahist(&historial);
     creamem(&memorial);
+    creasearch(&dirs);
     file_start(&abiertos);
     TNODOHIST dndhist = primerohist(historial);
     TNODOLISTA dndfile = fin(abiertos);
+    TNODOSEARCH dndsearch;
     
     while (1) {
         printf("->");
@@ -416,6 +418,43 @@ int main(int argc, char* argv[], char* envp[]) {
                 printf("Credencial Efectivo: %s (%d)\n", p->pw_name,uid);
             }else if (!strcmp(args[0],"fork")){
                 Cmd_fork(args);
+            }else if (!strcmp(args[0],"search")){
+                if(counter == 3){
+                    if (!strcmp(args[1],"-add")){
+                        insertasearch(&dirs,finsearch(dirs),args[2]);
+                    }if(!strcmp(args[1],"-del")){
+                        for(dndsearch=primerosearch(dirs);dndsearch != finsearch(dirs);dndsearch = siguientesearch(dirs,dndsearch)){
+                            recuperamem(dirs,dndsearch,&dir);
+                            if(!strcmp(args[2],dir)){
+                                suprimesearch(&dirs,dndsearch);
+                            }
+                        }
+                        if(dndsearch == finsearch(dirs)){
+                            printf("No se encontro el directorio.\n");
+                        }
+                    }
+                }if(counter == 2){
+                    if(!strcmp(args[1],"-clear")){
+                        for(dndsearch=primerosearch(dirs);dndsearch != finsearch(dirs);dndsearch = siguientesearch(dirs,dndsearch)){
+                                suprimesearch(&dirs,dndsearch);
+                        }
+                    }
+                    if(!strcmp(args[1],"-path")){//Falta poner en la lista
+                        path_var = getenv("PATH"); // Obtener la variable PATH
+                        if (path_var == NULL) {
+                            perror("No se pudo obtener la variable PATH\n");
+                        }
+                        // Crear una copia de PATH porque strtok modifica la cadena
+                        pathconfi = strdup(path_var);
+                        if (pathconfi == NULL) {
+                            perror("Error al duplicar la variable PATH");
+                        }
+
+                        otromas = strtok(pathconfi, ":"); 
+                    }
+            }}
+            else if (!strcmp(args[0],"exec")){
+                Execpve(args);//Modificar argumentos de la funcion
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
@@ -423,6 +462,7 @@ int main(int argc, char* argv[], char* envp[]) {
                 free(input); // Al salir liberamos memoria
                 destruye(&abiertos);
                 destruyehist(&historial);
+                destruyesearch(&dirs);
                 LiberarMemoriaLista(&memorial);
                 destruyemem(&memorial);
                 printf("Saliendo del shell...\n");

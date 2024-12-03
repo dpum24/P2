@@ -20,6 +20,7 @@
 #include <linux/types.h>
 #include <sys/resource.h>
 #include "abiertolista.h"
+#include "searchlist.c"
 
 #define MAXNAME 512
 #define MAXVAR 256
@@ -102,58 +103,49 @@ int CambiarVariable(char * var, char * valor, char *e[]) /*cambia una variable e
   e[pos]=aux;
   return (pos);
 }
-/*
-char * Ejecutable (char *s) //Busca en la lista el ejecutable s
+
+char * Ejecutable (char *s, SEARCH dirs) //Busca en la lista el ejecutable s
 {
         static char path[MAXNAME];
         struct stat st;
-        char *p;
+        DIR p;
+        TNODOSEARCH nodosearch = primerosearch(dirs);
    
-        if (s==NULL || (p=SearchListFirst())==NULL)
+        if (s==NULL || (esVaciasearch(dirs)))
                 return s;
         if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
-        return s;        //is an absolute pathname
+        return s;        /*s is an absolute pathname*/
         
         strncpy (path, p, MAXNAME-1);strncat (path,"/",MAXNAME-1); strncat(path,s,MAXNAME-1);
         if (lstat(path,&st)!=-1)
                 return path;
-        while ((p=SearchListNext())!=NULL){
+        while (nodosearch != finsearch(dirs)){
+            recuperasearch(dirs,nodosearch,&p);
             strncpy (path, p, MAXNAME-1);strncat (path,"/",MAXNAME-1); strncat(path,s,MAXNAME-1);
             if (lstat(path,&st)!=-1)
                    return path;
+            nodosearch = siguientesearch(dirs,nodosearch);
         }
         return s;
 }
-*/
-// OR (p=Ejecutable(tr[0]))==NULL)
-int ExecWithPriority(char *tr[]) {
-    char *p = tr[1];                // Programa a ejecutar
-    char **NewEnv = (char **)tr[2]; // Nuevo entorno (si aplica)
-    int pprio = 0;                  // Prioridad por defecto
 
-    // Convertir la prioridad de cadena a entero si se proporciona
-    if (tr[2] != NULL) {
-        pprio = atoi(tr[3]);
-    }
+int Execpve(char *tr[], char **NewEnv, int * pprio) { //Modificar argumentos
 
-    // Validar el ejecutable
-    if (p == NULL) { // Validar que el ejecutable no sea NULL
-        errno = EFAULT;
-        return -1;
-    }
-
-    // Cambiar la prioridad si se especifica
-    if (tr[2] != NULL && setpriority(PRIO_PROCESS, getpid(), pprio) == -1) {
-        printf("Imposible cambiar prioridad: %s\n", strerror(errno));
-        return -1;
-    }
-
-    // Ejecutar el programa con o sin nuevo entorno
-    if (NewEnv == NULL) {
-        return execv(p, tr);
-    } else {
-        return execve(p, tr, NewEnv);
-    }
+char *p; /*NewEnv contains the address of the new environment*/
+/*pprio the address of the new priority*/
+/*NULL indicates no change in environment and/or priority*/
+if (tr[0]==NULL || (p=Ejecutable(tr[0]))==NULL){
+errno=EFAULT;
+return-1;
+}
+if (pprio !=NULL && setpriority(PRIO_PROCESS,getpid(),*pprio)==-1 && errno){
+printf ("Imposible cambiar prioridad: %s\n",strerror(errno));
+return -1;
+}
+if (NewEnv==NULL)
+return execv (p,tr);
+else
+return execve (p, tr, NewEnv);
 }
 /*
 
