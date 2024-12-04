@@ -19,10 +19,14 @@
 #include "abiertolista.h"
 #include "memlist.h"
 #include "listahist.h"
+#include "searchlist.h"
+#include <sys/wait.h>
 #include <sys/ipc.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/mman.h>
+
+#define MAXNAME 512
 
 
 void authors(){
@@ -1164,3 +1168,55 @@ void DetachMmap(char *file,MEM *memorial,ABIERTOLISTA *abiertos){
     suprimemem(memorial,nodo);
     printf("Desmapeada Correctamente\n");
 }
+void Cmd_fork (char *tr[]){
+	pid_t pid;
+	
+	if ((pid=fork())==0){
+/*		VaciarListaProcesos(&LP); Depende de la implementaciÃ³n de cada uno*/
+		printf ("ejecutando proceso %d\n", getpid());
+	}
+	else if (pid!=-1)
+		waitpid (pid,NULL,0);
+}
+/*
+char * Ejecutable (char *s, SEARCH dirs) //Busca en la lista el ejecutable s
+{
+        static char path[MAXNAME];
+        struct stat st;
+        LOC p;
+        TNODOSEARCH nodosearch = primerosearch(dirs);
+   
+        if (s==NULL || (esVaciasearch(dirs)))
+                return s;
+        if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
+        return s;       
+        
+        strncpy (path, p, MAXNAME-1);strncat (path,"/",MAXNAME-1); strncat(path,s,MAXNAME-1);
+        if (lstat(path,&st)!=-1)
+                return path;
+        while (nodosearch != finsearch(dirs)){
+            recuperasearch(dirs,nodosearch,&p);
+            strncpy (path, p, MAXNAME-1);strncat (path,"/",MAXNAME-1); strncat(path,s,MAXNAME-1);
+            if (lstat(path,&st)!=-1)
+                   return path;
+            nodosearch = siguientesearch(dirs,nodosearch);
+        }
+        return s;
+}*/
+/*
+int Execpve(char *tr[], char **NewEnv, int * pprio) { //Modificar argumentos
+
+char *p; 
+if (tr[0]==NULL || (p=Ejecutable(tr[0]))==NULL){
+errno=EFAULT;
+return-1;
+}
+if (pprio !=NULL && setpriority(PRIO_PROCESS,getpid(),*pprio)==-1 && errno){
+printf ("Imposible cambiar prioridad: %s\n",strerror(errno));
+return -1;
+}
+if (NewEnv==NULL)
+return execv (p,tr);
+else
+return execve (p, tr, NewEnv);
+}*/

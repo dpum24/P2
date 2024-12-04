@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef char* DIR;
+typedef char* LOC;
 
 
-typedef struct nodoLista {DIR elemento;
+typedef struct nodoLista {LOC elemento;
                struct nodoLista * sig;} STNODOSEARCH;
 typedef STNODOSEARCH *TNODOSEARCH;
 
@@ -55,7 +55,7 @@ int esVaciasearch(SEARCH l)
    else return 0;
 }
 
-void recuperasearch(SEARCH l, TNODOSEARCH p, DIR *e)
+void recuperasearch(SEARCH l, TNODOSEARCH p, LOC *e)
 {
     *e = p->sig->elemento;
 }
@@ -65,7 +65,7 @@ int longitudsearch(SEARCH l)
     return l->longitud;
 }
 
-void insertasearch(SEARCH *l, TNODOSEARCH p, DIR e)
+void insertasearch(SEARCH *l, TNODOSEARCH p, LOC e)
 {
     TNODOSEARCH q ;
     q=p->sig;
@@ -90,7 +90,7 @@ free(q);
 (*l)->longitud -- ;
 }
 
-void modificasearch(SEARCH *l, TNODOSEARCH p, DIR e)
+void modificasearch(SEARCH *l, TNODOSEARCH p, LOC e)
 {
     p->sig->elemento=e;
 }

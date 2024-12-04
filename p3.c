@@ -18,15 +18,13 @@
 #include "ayudaP2.h"
 #include "libshell.h"
 #include "searchlist.h"
-#include "ayudaP3.h"
+#include "backlist.h"
 
 //falta listfile
 //memory funcs not supported for repeat_cmd()
 //En writefile, crea un fichero nuevo, no se le pone uno antiguo
 
 //Modificar argumentos de Execpve
-//search -path que anada a la lista
-//Crear la lista de procesos en segundo plano
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
@@ -51,18 +49,20 @@ int main(int argc, char* argv[], char* envp[]) {
     void *del;
     char *args[20];
     char *input = malloc(sizeof(char) * 50);
-    char *path_var, *pathconfi, *otromas;
+    char *path_var, *pathconfi, *otrodir;
     void *mem;
-    DIR dir;
+    LOC dir;
     ABIERTOLISTA abiertos;
     HIST historial;
     MEM memorial;
     SEARCH dirs;
+    PRO procesos;
     
     crea(&abiertos);
     creahist(&historial);
     creamem(&memorial);
     creasearch(&dirs);
+    creapro(&procesos);
     file_start(&abiertos);
     TNODOHIST dndhist = primerohist(historial);
     TNODOLISTA dndfile = fin(abiertos);
@@ -424,7 +424,7 @@ int main(int argc, char* argv[], char* envp[]) {
                         insertasearch(&dirs,finsearch(dirs),args[2]);
                     }if(!strcmp(args[1],"-del")){
                         for(dndsearch=primerosearch(dirs);dndsearch != finsearch(dirs);dndsearch = siguientesearch(dirs,dndsearch)){
-                            recuperamem(dirs,dndsearch,&dir);
+                            recuperasearch(dirs,dndsearch,&dir);
                             if(!strcmp(args[2],dir)){
                                 suprimesearch(&dirs,dndsearch);
                             }
@@ -439,8 +439,8 @@ int main(int argc, char* argv[], char* envp[]) {
                                 suprimesearch(&dirs,dndsearch);
                         }
                     }
-                    if(!strcmp(args[1],"-path")){//Falta poner en la lista
-                        path_var = getenv("PATH"); // Obtener la variable PATH
+                    if(!strcmp(args[1],"-path")){
+                        path_var = getenv("PATH");
                         if (path_var == NULL) {
                             perror("No se pudo obtener la variable PATH\n");
                         }
@@ -449,12 +449,19 @@ int main(int argc, char* argv[], char* envp[]) {
                         if (pathconfi == NULL) {
                             perror("Error al duplicar la variable PATH");
                         }
-
-                        otromas = strtok(pathconfi, ":"); 
-                    }
+                        for(dndsearch=primerosearch(dirs);dndsearch != finsearch(dirs);dndsearch = siguientesearch(dirs,dndsearch)){
+                                suprimesearch(&dirs,dndsearch);//Basicamente search -clear
+                        }
+                        otrodir = strtok(pathconfi, ":");
+                        dndsearch = primerosearch(dirs);
+                        while (otrodir != NULL) {
+                        insertasearch(&dirs,dndsearch,otrodir); 
+                        dir = strtok(NULL, ":");
+                        dndsearch = siguientesearch(dirs,dndsearch);
+                        }}
             }}
             else if (!strcmp(args[0],"exec")){
-                Execpve(args);//Modificar argumentos de la funcion
+                //Execpve(args);
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
@@ -463,6 +470,7 @@ int main(int argc, char* argv[], char* envp[]) {
                 destruye(&abiertos);
                 destruyehist(&historial);
                 destruyesearch(&dirs);
+                destruyepro(&procesos);
                 LiberarMemoriaLista(&memorial);
                 destruyemem(&memorial);
                 printf("Saliendo del shell...\n");

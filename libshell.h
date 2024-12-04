@@ -37,4 +37,6 @@ ssize_t WriteFichero2(int df, char *file,void *p, size_t cont);
 void DetachSharedMemory(key_t clave, MEM *shared);
 void DetachMmap(char *file,MEM *memorial,ABIERTOLISTA *abiertos);
 void cwd();
+void Cmd_fork (char *tr[]);
+//char * Ejecutable (char *s, SEARCH dirs);
 #endif

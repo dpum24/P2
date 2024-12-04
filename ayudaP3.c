@@ -19,7 +19,6 @@
 #include <errno.h>
 #include <linux/types.h>
 #include <sys/resource.h>
-#include "abiertolista.h"
 #include "searchlist.c"
 
 #define MAXNAME 512
@@ -108,7 +107,7 @@ char * Ejecutable (char *s, SEARCH dirs) //Busca en la lista el ejecutable s
 {
         static char path[MAXNAME];
         struct stat st;
-        DIR p;
+        LOC p;
         TNODOSEARCH nodosearch = primerosearch(dirs);
    
         if (s==NULL || (esVaciasearch(dirs)))
@@ -128,12 +127,10 @@ char * Ejecutable (char *s, SEARCH dirs) //Busca en la lista el ejecutable s
         }
         return s;
 }
-
+/*
 int Execpve(char *tr[], char **NewEnv, int * pprio) { //Modificar argumentos
 
-char *p; /*NewEnv contains the address of the new environment*/
-/*pprio the address of the new priority*/
-/*NULL indicates no change in environment and/or priority*/
+char *p; 
 if (tr[0]==NULL || (p=Ejecutable(tr[0]))==NULL){
 errno=EFAULT;
 return-1;
@@ -146,7 +143,7 @@ if (NewEnv==NULL)
 return execv (p,tr);
 else
 return execve (p, tr, NewEnv);
-}
+}*/
 /*
 
 static struct SEN sigstrnum[]={   
