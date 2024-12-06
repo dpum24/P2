@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <pwd.h>
+#include <sys/wait.h>
 #include "abiertolista.h"
 #include "listahist.h"
 #include "memlist.h"
@@ -20,11 +21,8 @@
 #include "searchlist.h"
 #include "backlist.h"
 
-//falta listfile
-//memory funcs not supported for repeat_cmd()
-//En writefile, crea un fichero nuevo, no se le pone uno antiguo
-
-//Averiguar como funcionas las ejecuciones
+//Probar exec y fg
+//comprobar la logica de exec_chop, al poner prioridad (otro arg en args)
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
@@ -463,39 +461,31 @@ int main(int argc, char* argv[], char* envp[]) {
                         }}
             }}
             else if (!strcmp(args[0],"exec")){
-                //Hacer funcion que haga lo que hace este codigo?
-                // Recorrer los argumentos y clasificar variables de entorno y archivo ejecutable
-                exec_index=-1;
-                for (i = 1; i < counter; i++) {
-                if (getenv(args[i]) != NULL) { // Es una variable de entorno
-                env_vars[env_count++] = args[i];
-                } else {
-                    exec_index = i; // Encontramos el archivo ejecutable
-                    break;
-                }
-                }
-                if (exec_index == -1) {
-                    perror("No se encontro archivo ejecutable");
-                }
-                if (env_count > 0) {
-                for (i = 0; i < env_count; i++) {
-                val = getenv(env_vars[i]);
-                if (val) {
-                size_t len = strlen(env_vars[i]) + strlen(val) + 2; // VAR=VAL\0
-                new_env[i] = malloc(len);
-                snprintf(new_env[i], len, "%s=%s", env_vars[i], val);
-                }
-                }}
-                exec_arg_count = 0;
-                for (i = exec_index; i < counter; i++) {
-                cmd_args[exec_arg_count++] = args[i];
-                }   
-
+                exec_chop(args,counter,new_env,cmd_args);   
                 if (Execpve(cmd_args, new_env, 0, dirs) == -1) {
                     perror("exec");
                 }
-            }else if(!strcmp(args[0],"execpri")){
-                Execpve(args,envp,(int*)args[1],dirs);
+            }else if(!strcmp(args[0],"execpri")){//tal vez cambie la logica de exec_chop al tener diferentes argumentos
+                exec_chop(args,counter,new_env,cmd_args);
+                if (Execpve(cmd_args, new_env,(int*)args[1], dirs) == -1) {
+                    perror("exec");
+                }
+            }else if (!strcmp(args[0],"fg")){
+                pid = fork();
+                //pid > 0 -> Proceso padre
+                //pid == 0 -> Proceso hijo
+                if (pid < 0) { // Error al crear el proceso
+                perror("fallo fork");
+                }
+                if(pid == 0){
+                    exec_chop(args,counter,new_env,cmd_args);   
+                    if (Execpve(cmd_args, new_env, 0, dirs) == -1) {
+                    perror("exec");
+                }
+                }
+                else{
+                    waitpid(pid,&control,0);
+                }
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();

@@ -30,6 +30,7 @@
 
 #define MAXNAME 512
 
+extern char **environ;
 
 void authors(){
     printf("Rubén Sayáns Fortes, ruben.sayans@udc.es\nDiego Emilio Pumarol Guerrero, diego.pumarol@udc.es\n");
@@ -1221,4 +1222,37 @@ if (NewEnv==NULL)
 return execv (p,tr);
 else
 return execve (p, tr, NewEnv);
+}
+
+void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[]){
+    // Recorrer los argumentos y clasificar variables de entorno y archivo ejecutable
+    int exec_index,env_count,i,exec_arg_count;
+    char *env_vars[20];
+    char *val;
+    size_t len;
+    exec_index=-1;
+    for (i = 1; i < counter; i++) {
+        if (getenv(args[i]) != NULL) { // Es una variable de entorno
+            env_vars[env_count++] = args[i];
+        } else {
+            exec_index = i; // Encontramos el archivo ejecutable
+            break;
+            }
+        }
+        if (exec_index == -1) {
+            perror("No se encontro archivo ejecutable");
+        }
+        if (env_count > 0) {
+            for (i = 0; i < env_count; i++) {
+                val = getenv(env_vars[i]);
+                if (val) {
+                len = strlen(env_vars[i]) + strlen(val) + 2; // VAR=VAL\0
+                new_env[i] = malloc(len);
+                snprintf(new_env[i], len, "%s=%s", env_vars[i], val);
+                }
+                }}
+        exec_arg_count = 0;
+        for (i = exec_index; i < counter; i++) {
+            cmd_args[exec_arg_count++] = args[i];
+        } 
 }

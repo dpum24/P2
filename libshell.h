@@ -41,4 +41,5 @@ void cwd();
 void Cmd_fork (char *tr[]);
 char * Ejecutable (char *s, SEARCH dirs);
 int Execpve(char *tr[], char **NewEnv, int * pprio, SEARCH dirs);
+void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[]);
 #endif
