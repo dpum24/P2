@@ -25,6 +25,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/mman.h>
+#include <linux/types.h>
+#include <sys/resource.h>
 
 #define MAXNAME 512
 
@@ -1178,7 +1180,7 @@ void Cmd_fork (char *tr[]){
 	else if (pid!=-1)
 		waitpid (pid,NULL,0);
 }
-/*
+
 char * Ejecutable (char *s, SEARCH dirs) //Busca en la lista el ejecutable s
 {
         static char path[MAXNAME];
@@ -1202,12 +1204,12 @@ char * Ejecutable (char *s, SEARCH dirs) //Busca en la lista el ejecutable s
             nodosearch = siguientesearch(dirs,nodosearch);
         }
         return s;
-}*/
-/*
-int Execpve(char *tr[], char **NewEnv, int * pprio) { //Modificar argumentos
+}
+
+int Execpve(char *tr[], char **NewEnv, int * pprio, SEARCH dirs) {
 
 char *p; 
-if (tr[0]==NULL || (p=Ejecutable(tr[0]))==NULL){
+if (tr[0]==NULL || (p=Ejecutable(tr[1],dirs))==NULL){
 errno=EFAULT;
 return-1;
 }
@@ -1219,4 +1221,4 @@ if (NewEnv==NULL)
 return execv (p,tr);
 else
 return execve (p, tr, NewEnv);
-}*/
+}

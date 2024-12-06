@@ -24,12 +24,14 @@
 //memory funcs not supported for repeat_cmd()
 //En writefile, crea un fichero nuevo, no se le pone uno antiguo
 
-//Modificar argumentos de Execpve
+//Averiguar como funcionas las ejecuciones
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
 float glob2,globini2=1.4;
 char glob3,globini3='c';
+
+#define MAX_ARGS 20
 
 extern char **environ;
 
@@ -45,11 +47,11 @@ int main(int argc, char* argv[], char* envp[]) {
     struct tm *now;
     uid_t  uid;
     struct passwd *p;
-    int counter, control,i,tam;
+    int counter, control,i,tam,env_count,arg_index,exec_index,exec_arg_count;
     void *del;
-    char *args[20];
+    char *args[MAX_ARGS],*new_env[MAX_ARGS],*env_vars[MAX_ARGS],*cmd_args[MAX_ARGS];
     char *input = malloc(sizeof(char) * 50);
-    char *path_var, *pathconfi, *otrodir;
+    char *path_var, *pathconfi, *otrodir, *val;
     void *mem;
     LOC dir;
     ABIERTOLISTA abiertos;
@@ -456,12 +458,44 @@ int main(int argc, char* argv[], char* envp[]) {
                         dndsearch = primerosearch(dirs);
                         while (otrodir != NULL) {
                         insertasearch(&dirs,dndsearch,otrodir); 
-                        dir = strtok(NULL, ":");
+                        otrodir = strtok(NULL, ":");
                         dndsearch = siguientesearch(dirs,dndsearch);
                         }}
             }}
             else if (!strcmp(args[0],"exec")){
-                //Execpve(args);
+                //Hacer funcion que haga lo que hace este codigo?
+                // Recorrer los argumentos y clasificar variables de entorno y archivo ejecutable
+                exec_index=-1;
+                for (i = 1; i < counter; i++) {
+                if (getenv(args[i]) != NULL) { // Es una variable de entorno
+                env_vars[env_count++] = args[i];
+                } else {
+                    exec_index = i; // Encontramos el archivo ejecutable
+                    break;
+                }
+                }
+                if (exec_index == -1) {
+                    perror("No se encontro archivo ejecutable");
+                }
+                if (env_count > 0) {
+                for (i = 0; i < env_count; i++) {
+                val = getenv(env_vars[i]);
+                if (val) {
+                size_t len = strlen(env_vars[i]) + strlen(val) + 2; // VAR=VAL\0
+                new_env[i] = malloc(len);
+                snprintf(new_env[i], len, "%s=%s", env_vars[i], val);
+                }
+                }}
+                exec_arg_count = 0;
+                for (i = exec_index; i < counter; i++) {
+                cmd_args[exec_arg_count++] = args[i];
+                }   
+
+                if (Execpve(cmd_args, new_env, 0, dirs) == -1) {
+                    perror("exec");
+                }
+            }else if(!strcmp(args[0],"execpri")){
+                Execpve(args,envp,(int*)args[1],dirs);
             }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();

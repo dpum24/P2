@@ -1,4 +1,5 @@
 #include <sys/ipc.h>
+#include "searchlist.h"
 #ifndef LIBSHELL_H
 #define LIBSHELL_H
 
@@ -38,5 +39,6 @@ void DetachSharedMemory(key_t clave, MEM *shared);
 void DetachMmap(char *file,MEM *memorial,ABIERTOLISTA *abiertos);
 void cwd();
 void Cmd_fork (char *tr[]);
-//char * Ejecutable (char *s, SEARCH dirs);
+char * Ejecutable (char *s, SEARCH dirs);
+int Execpve(char *tr[], char **NewEnv, int * pprio, SEARCH dirs);
 #endif
