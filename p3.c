@@ -45,7 +45,8 @@ int main(int argc, char* argv[], char* envp[]) {
     struct tm *now;
     uid_t  uid;
     struct passwd *p;
-    int counter, control,i,tam,env_count,arg_index,exec_index,exec_arg_count;
+    int counter, control,i,tam;
+    int *prio;
     void *del;
     char *args[MAX_ARGS],*new_env[MAX_ARGS],*env_vars[MAX_ARGS],*cmd_args[MAX_ARGS];
     char *input = malloc(sizeof(char) * 50);
@@ -461,32 +462,37 @@ int main(int argc, char* argv[], char* envp[]) {
                         }}
             }}
             else if (!strcmp(args[0],"exec")){
-                exec_chop(args,counter,new_env,cmd_args);   
+                exec_chop(args,counter,new_env,cmd_args,0);   
                 if (Execpve(cmd_args, new_env, 0, dirs) == -1) {
                     perror("exec");
                 }
-            }else if(!strcmp(args[0],"execpri")){//tal vez cambie la logica de exec_chop al tener diferentes argumentos
-                exec_chop(args,counter,new_env,cmd_args);
-                if (Execpve(cmd_args, new_env,(int*)args[1], dirs) == -1) {
+            }else if(!strcmp(args[0],"execpri")){ 
+                exec_chop(args,counter,new_env,cmd_args,1);
+                i = atoi(args[1]);
+                prio = &i;
+                if (Execpve(cmd_args, new_env,prio,dirs) == -1) {
                     perror("exec");
                 }
             }else if (!strcmp(args[0],"fg")){
                 pid = fork();
-                //pid > 0 -> Proceso padre
-                //pid == 0 -> Proceso hijo
-                if (pid < 0) { // Error al crear el proceso
+    
+                if (pid < 0) {
                 perror("fallo fork");
                 }
-                if(pid == 0){
-                    exec_chop(args,counter,new_env,cmd_args);   
-                    if (Execpve(cmd_args, new_env, 0, dirs) == -1) {
-                    perror("exec");
+
+                if (pid == 0) {
+                // proceso hijo
+                exec_chop(args, counter, new_env, cmd_args,0);   
+                if (Execpve(cmd_args, new_env, 0, dirs) == -1) {
+                perror("exec");
                 }
+                _exit(1);
+                } else {
+                // Proceso padre
+                if (waitpid(pid, &control, 0) == -1) {
+                perror("waitpid");
                 }
-                else{
-                    waitpid(pid,&control,0);
-                }
-            }
+                }}
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell

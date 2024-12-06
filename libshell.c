@@ -1210,7 +1210,7 @@ char * Ejecutable (char *s, SEARCH dirs) //Busca en la lista el ejecutable s
 int Execpve(char *tr[], char **NewEnv, int * pprio, SEARCH dirs) {
 
 char *p; 
-if (tr[0]==NULL || (p=Ejecutable(tr[1],dirs))==NULL){
+if (tr[0]==NULL || (p=Ejecutable(tr[0],dirs))==NULL){
 errno=EFAULT;
 return-1;
 }
@@ -1218,20 +1218,22 @@ if (pprio !=NULL && setpriority(PRIO_PROCESS,getpid(),*pprio)==-1 && errno){
 printf ("Imposible cambiar prioridad: %s\n",strerror(errno));
 return -1;
 }
-if (NewEnv==NULL)
-return execv (p,tr);
-else
-return execve (p, tr, NewEnv);
+if (NewEnv[0]==NULL){
+    return execv (p,tr);
+}
+else{
+    return execve (p, tr, NewEnv);
+}
 }
 
-void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[]){
+void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[],int control){
     // Recorrer los argumentos y clasificar variables de entorno y archivo ejecutable
-    int exec_index,env_count,i,exec_arg_count;
+    int exec_index,env_count=0,i,exec_arg_count;
     char *env_vars[20];
     char *val;
     size_t len;
     exec_index=-1;
-    for (i = 1; i < counter; i++) {
+    for (i = 1+control; i < counter; i++) {
         if (getenv(args[i]) != NULL) { // Es una variable de entorno
             env_vars[env_count++] = args[i];
         } else {
@@ -1251,8 +1253,12 @@ void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[]){
                 snprintf(new_env[i], len, "%s=%s", env_vars[i], val);
                 }
                 }}
+        if (env_count == 0){
+            new_env[0] = NULL;
+        }
         exec_arg_count = 0;
         for (i = exec_index; i < counter; i++) {
             cmd_args[exec_arg_count++] = args[i];
         } 
+        cmd_args[exec_arg_count] = NULL;
 }
