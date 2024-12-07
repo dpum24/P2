@@ -1252,7 +1252,9 @@ void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[],int c
                 new_env[i] = malloc(len);
                 snprintf(new_env[i], len, "%s=%s", env_vars[i], val);
                 }
-                }}
+            }
+            new_env[env_count]=NULL;
+        }
         if (env_count == 0){
             new_env[0] = NULL;
         }

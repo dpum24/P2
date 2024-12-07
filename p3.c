@@ -21,7 +21,7 @@
 #include "searchlist.h"
 #include "backlist.h"
 
-//Probar que ejecuta con variables de entorno
+//Arreglar con variables de entorno: Bad Address
 //Ver como funciona back y backpri en shell referencia (mirar si hay señales o cosas raras)
 
 //valgrind --leak-check=yes ./p2
@@ -49,7 +49,7 @@ int main(int argc, char* argv[], char* envp[]) {
     int *prio;
     void *del;
     char *args[MAX_ARGS],*new_env[MAX_ARGS],*env_vars[MAX_ARGS],*cmd_args[MAX_ARGS];
-    char *input = malloc(sizeof(char) * 50);
+    char *input = malloc(sizeof(char) * 100);
     char *path_var, *pathconfi, *otrodir, *val;
     void *mem;
     LOC dir;
@@ -58,6 +58,7 @@ int main(int argc, char* argv[], char* envp[]) {
     MEM memorial;
     SEARCH dirs;
     PRO procesos;
+    PROCESS pro;
     
     crea(&abiertos);
     creahist(&historial);
@@ -71,7 +72,7 @@ int main(int argc, char* argv[], char* envp[]) {
     
     while (1) {
         printf("->");
-        fgets(input, 50, stdin);
+        fgets(input, 100, stdin);
         counter = TrocearCadena(input, args); // Trocea "input" en el array de strings "args", numero de args es "counter"
         
         if (counter != 0) {
@@ -495,7 +496,7 @@ int main(int argc, char* argv[], char* envp[]) {
             }}
             else if (!strcmp(args[0],"fgpri")){
                 pid = fork();
-                if(pid < 1){
+                if(pid < 0){
                     perror("fork");
                 }
                 if(pid == 0){
@@ -510,6 +511,54 @@ int main(int argc, char* argv[], char* envp[]) {
                     if(waitpid(pid,&control,0)==-1){
                         perror("waipid");
                     }
+                }
+            }else if(!strcmp(args[0],"back")){
+                pid = fork();
+                if(pid < 0){
+                    perror("fork");
+                }
+                if(pid == 0){
+                    exec_chop(args, counter, new_env, cmd_args,0);
+                if (Execpve(cmd_args, new_env, 0, dirs) == -1) {
+                    perror("exec");
+                }
+                _exit(1); 
+                }else{
+                    pro.pid = pid;
+                    t = time(NULL);
+                    now = localtime(&t);
+                    pro.time = *now;
+                    pro.status = ACTIVE;
+                    pro.prio = 0;
+                    for(i=1;i<counter;i++){
+                        strncat(pro.cmd,args[i],sizeof(args[i]));
+                    }
+                    insertapro(&procesos,finpro(procesos),pro);
+                }
+            }else if(!strcmp(args[0],"backpri")){
+                pid = fork();
+                if(pid < 0){
+                    perror("fork");
+                }
+                if(pid == 0){
+                    exec_chop(args, counter, new_env, cmd_args,1);
+                    i = atoi(args[1]);
+                    prio = &i;
+                if (Execpve(cmd_args, new_env, prio, dirs) == -1) {
+                    perror("exec");
+                }
+                _exit(1); 
+                }else{
+                    pro.pid = pid;
+                    t = time(NULL);
+                    now = localtime(&t);
+                    pro.time = *now;
+                    pro.status = ACTIVE;
+                    pro.prio = i;
+                    for(i=1;i<counter;i++){
+                        strncat(pro.cmd,args[i],sizeof(args[i]));
+                    }
+                    insertapro(&procesos,finpro(procesos),pro);
                 }
             }
             else if (strcmp(args[0], "cwd") == 0) {
