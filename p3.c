@@ -21,8 +21,8 @@
 #include "searchlist.h"
 #include "backlist.h"
 
-//Probar exec y fg
-//comprobar la logica de exec_chop, al poner prioridad (otro arg en args)
+//Probar que ejecuta con variables de entorno
+//Ver como funciona back y backpri en shell referencia (mirar si hay señales o cosas raras)
 
 //valgrind --leak-check=yes ./p2
 int glob,globini=10;
@@ -492,7 +492,26 @@ int main(int argc, char* argv[], char* envp[]) {
                 if (waitpid(pid, &control, 0) == -1) {
                 perror("waitpid");
                 }
-                }}
+            }}
+            else if (!strcmp(args[0],"fgpri")){
+                pid = fork();
+                if(pid < 1){
+                    perror("fork");
+                }
+                if(pid == 0){
+                    exec_chop(args,counter,new_env,cmd_args,1);   
+                    i = atoi(args[1]);
+                    prio = &i;
+                    if (Execpve(cmd_args, new_env, prio, dirs) == -1) {
+                        perror("exec");
+                    }
+                _exit(1);
+                }else {
+                    if(waitpid(pid,&control,0)==-1){
+                        perror("waipid");
+                    }
+                }
+            }
             else if (strcmp(args[0], "cwd") == 0) {
                 cwd();
             } else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "bye") == 0 || strcmp(args[0], "quit") == 0) { // Sale del shell
