@@ -20,6 +20,7 @@
 #include "memlist.h"
 #include "listahist.h"
 #include "searchlist.h"
+#include "backlist.h"
 #include <sys/wait.h>
 #include <sys/ipc.h>
 #include <sys/ipc.h>
@@ -1263,4 +1264,13 @@ void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[],int c
             cmd_args[exec_arg_count++] = args[i];
         } 
         cmd_args[exec_arg_count] = NULL;
+}
+void Cmd_listjobs(PRO procesos){
+    PROCESS p;
+    //19741       diego p=-1 2024/11/07 15:07:48 TERMINADO (000) ls
+    if(esVaciapro(procesos)!=1){
+    for(TNODOPRO d = primeropro(procesos);d != finpro(procesos);d = siguientepro(procesos,d)){
+        recuperapro(procesos,d,&p);
+    }
+    }
 }

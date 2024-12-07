@@ -48,9 +48,9 @@ int main(int argc, char* argv[], char* envp[]) {
     int counter, control,i,tam;
     int *prio;
     void *del;
-    char *args[MAX_ARGS],*new_env[MAX_ARGS],*env_vars[MAX_ARGS],*cmd_args[MAX_ARGS];
+    char *args[MAX_ARGS],*new_env[MAX_ARGS],*cmd_args[MAX_ARGS];
     char *input = malloc(sizeof(char) * 100);
-    char *path_var, *pathconfi, *otrodir, *val;
+    char *path_var, *pathconfi, *otrodir;
     void *mem;
     LOC dir;
     ABIERTOLISTA abiertos;
@@ -531,7 +531,7 @@ int main(int argc, char* argv[], char* envp[]) {
                     pro.status = ACTIVE;
                     pro.prio = 0;
                     for(i=1;i<counter;i++){
-                        strncat(pro.cmd,args[i],sizeof(args[i]));
+                        strncat(pro.cmd,args[i],sizeof(args[i]));//sizeof(args[i])?
                     }
                     insertapro(&procesos,finpro(procesos),pro);
                 }
@@ -556,7 +556,7 @@ int main(int argc, char* argv[], char* envp[]) {
                     pro.status = ACTIVE;
                     pro.prio = i;
                     for(i=1;i<counter;i++){
-                        strncat(pro.cmd,args[i],sizeof(args[i]));
+                        strncat(pro.cmd,args[i],sizeof(args[i]));//sizeof(args[i])?
                     }
                     insertapro(&procesos,finpro(procesos),pro);
                 }
