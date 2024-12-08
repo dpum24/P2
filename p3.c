@@ -19,7 +19,7 @@
 #include "ayudaP2.h"
 #include "libshell.h"
 #include "searchlist.h"
-#include "backlist.h"
+
 
 //Arreglar con variables de entorno: Bad Address
 //Ver como funciona back y backpri en shell referencia (mirar si hay señales o cosas raras)
@@ -522,7 +522,6 @@ int main(int argc, char* argv[], char* envp[]) {
                 if (Execpve(cmd_args, new_env, 0, dirs) == -1) {
                     perror("exec");
                 }
-                _exit(1); 
                 }else{
                     pro.pid = pid;
                     t = time(NULL);
@@ -530,9 +529,10 @@ int main(int argc, char* argv[], char* envp[]) {
                     pro.time = *now;
                     pro.status = ACTIVE;
                     pro.prio = 0;
-                    for(i=1;i<counter;i++){
-                        strncat(pro.cmd,args[i],sizeof(args[i]));//sizeof(args[i])?
-                    }
+                    if (strlen(pro.cmd) + strlen(args[i]) + 1 < sizeof(pro.cmd)) { // +1 para el espacio
+                        strcat(pro.cmd, args[i]);
+                    if (i < counter - 1) strcat(pro.cmd, " "); // Añadir espacio entre argumentos
+                    }   
                     insertapro(&procesos,finpro(procesos),pro);
                 }
             }else if(!strcmp(args[0],"backpri")){
@@ -556,9 +556,29 @@ int main(int argc, char* argv[], char* envp[]) {
                     pro.status = ACTIVE;
                     pro.prio = i;
                     for(i=1;i<counter;i++){
-                        strncat(pro.cmd,args[i],sizeof(args[i]));//sizeof(args[i])?
+                        strncat(pro.cmd,args[i],strlen(args[i]));
                     }
                     insertapro(&procesos,finpro(procesos),pro);
+                }
+            }else if (!strcmp(args[0],"listjobs")){
+                Cmd_listjobs(procesos);
+            }else if(!strcmp(args[0],"deljobs")){
+                if (counter>2){
+                    if(!strcmp(args[1],"-term")){
+                        for(TNODOPRO d = primeropro(procesos);d != finpro(procesos);d = siguientepro(procesos,d)){
+                            recuperapro(procesos,d,&pro);
+                            if(pro.status == STOPPED){
+                                suprimepro(&procesos,d);
+                            }
+                        }
+                    }if(!strcmp(args[1],"-sig")){
+                        for(TNODOPRO d = primeropro(procesos);d != finpro(procesos);d = siguientepro(procesos,d)){
+                            recuperapro(procesos,d,&pro);
+                            if(pro.status == SIGNALED){
+                                suprimepro(&procesos,d);
+                            }
+                        }
+                    }
                 }
             }
             else if (strcmp(args[0], "cwd") == 0) {

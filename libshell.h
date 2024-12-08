@@ -1,8 +1,8 @@
 #include <sys/ipc.h>
 #include "searchlist.h"
+#include "backlist.h"
 #ifndef LIBSHELL_H
 #define LIBSHELL_H
-
 void authors();
 void authorsl();
 void authorsn();

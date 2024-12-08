@@ -1265,12 +1265,22 @@ void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[],int c
         } 
         cmd_args[exec_arg_count] = NULL;
 }
+const char* getAllocationTypeNameJobs(Status type) {
+    switch (type) {
+        case FINISHED: return "Finished";
+        case STOPPED: return "Stopped";
+        case SIGNALED: return "Signaled";
+        case ACTIVE: return "Active";
+        default: return "No";
+    }
+}
 void Cmd_listjobs(PRO procesos){
     PROCESS p;
     //19741       diego p=-1 2024/11/07 15:07:48 TERMINADO (000) ls
     if(esVaciapro(procesos)!=1){
     for(TNODOPRO d = primeropro(procesos);d != finpro(procesos);d = siguientepro(procesos,d)){
         recuperapro(procesos,d,&p);
+        printf("%d %s\n",p.pid,getAllocationTypeNameJobs(p.status));
     }
     }
 }

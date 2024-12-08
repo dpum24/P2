@@ -18,7 +18,6 @@ typedef struct PROCESS{
     int prio;      
 }PROCESS;
 
-
 typedef struct nodoLista {PROCESS elemento;
                struct nodoLista * sig;} STNODOPRO;
 typedef STNODOPRO *TNODOPRO;
