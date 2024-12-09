@@ -43,5 +43,5 @@ char * Ejecutable (char *s, SEARCH dirs);
 int Execpve(char *tr[], char **NewEnv, int * pprio, SEARCH dirs);
 void exec_chop(char *args[], int counter, char *new_env[],char *cmd_args[],int control);
 void Cmd_listjobs(PRO procesos);
-void gettuid();
+
 #endif
