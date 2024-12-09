@@ -33,6 +33,24 @@
 
 extern char **environ;
 
+ void gettuid() {
+    uid_t real_uid = getuid();
+    uid_t effective_uid = geteuid();
+
+    // Mostrar las credenciales reales
+    printf("Credencial real: ");
+    struct passwd *pw_real = getpwuid(real_uid);
+    if (pw_real) {
+        printf("%d, (%s)\n", pw_real->pw_uid, pw_real->pw_name);
+    }
+
+    // Mostrar las credenciales efectivas
+    printf("Credencial efectiva: ");
+    struct passwd *pw_effective = getpwuid(effective_uid);
+    if (pw_effective) {
+        printf("%d, (%s)\n", pw_effective->pw_uid, pw_effective->pw_name);
+    }
+}
 void authors(){
     printf("Rubén Sayáns Fortes, ruben.sayans@udc.es\nDiego Emilio Pumarol Guerrero, diego.pumarol@udc.es\n");
 }
