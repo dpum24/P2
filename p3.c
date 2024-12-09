@@ -593,7 +593,9 @@ int main(int argc, char* argv[], char* envp[]) {
                 destruyemem(&memorial);
                 printf("Saliendo del shell...\n");
                 break;
-            } else {
+            } else if (strcmp(args[0], "getuid") == 0){
+		    gettuid();
+	    }else {
                 printf("Comando no reconocido: %s\n", args[0]);
             }
             historics(args, historial, &c); // Guardamos en el historial los comandos introducidos
